@@ -1,0 +1,52 @@
+@import './variable.scss';
+@import './mixin.scss';
+
+//按钮混合
+@mixin button($value:default) {
+    background-color: themed('btn-#{$value}-background');
+    border:themed('btn-#{$value}-color');
+    color:themed('btn-#{value}-color');
+    border: 1px solid;
+    width:100px;
+    height:50px;
+    border-radius: 10px;
+
+    &:hover {
+        background-color: themed('btn-#{$value}-background-hover');
+        border:themed('btn-#{$value}-border-hover');
+        color:themed('btn-#{$value}-color-hover');
+    }
+
+
+}
+
+//全局类 使用混合方法
+@include themify($themes) {
+
+    //标题类
+    .them_title {
+        width: 100%;
+        height: 40px;
+        //因为在这个位置已经包含了$theme-map，例如blove(...)所以直接用方法取出对应变量即可
+        background-color: themed('them-title-background');
+        color: themed('them-title-color');
+    }
+    
+    .theme_bg{
+        background-color: themed('them-title-background');
+    }
+
+    //按钮类
+    .them-btn-default {
+        @include button;
+    }
+
+    .them-btn-primary {
+        @include button('primary');
+    }
+
+    .them-btn-info {
+        @include button('info');
+    }
+
+}

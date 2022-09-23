@@ -1,0 +1,44 @@
+@import "./element-ui.scss";
+@import "./reset.css";
+@import "./themify.scss";
+
+.clear:after {
+  clear: both;
+  content: " ";
+  display: block;
+  height: 0;
+  font-size: 0;
+}
+
+.clear {
+  *zoom: 1;
+}
+
+/*一屏100%*/
+html,
+body {
+  height: 100%;
+  position: relative;
+}
+
+/*顶层路由样式*/
+#app {
+  height: 100%;
+  overflow: hidden;
+  -webkit-overflow-scrolling: touch; //优化ios 滚动卡顿和滚动穿透
+}
+
+.app-container {
+  min-height: 100%;
+  width: 100%;
+  background-color: #fff;
+  color: #000;
+  padding: 10px;
+}
+
+//stylesheet
+
+input:-internal-autofill-selected {
+  //-internal-light-dark(rgb(232, 240, 254), rgba(70, 90, 126, 0.4))
+  background-color: none !important;
+}

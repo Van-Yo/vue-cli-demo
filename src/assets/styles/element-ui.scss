@@ -1,0 +1,78 @@
+//去除所有圆角
+.el-input-group__append,
+.el-input-group__prepend,
+.el-input input,
+.el-date-editor,
+.tree-border,
+.el-button:not(.is-round),
+.el-select-dropdown,
+.vue-treeselect__control,
+.el-textarea__inner,
+.el-message-box,
+.el-checkbox,
+.el-checkbox__inner,
+.el-radio-button__inner,
+.el-picker-panel,
+.el-popover {
+  border-radius: unset !important;
+  &.is-circle {
+    border-radius: 50% !important;
+  }
+}
+
+//去除所有圆角
+.el-input-group__append,
+.el-input-group__prepend,
+.el-input input,
+.el-date-editor,
+.tree-border,
+.el-button:not(.is-round),
+.el-select-dropdown,
+.vue-treeselect__control,
+.el-textarea__inner,
+.el-message-box,
+.el-checkbox,
+.el-checkbox__inner,
+.el-radio-button__inner,
+.el-popover {
+  border-radius: unset !important;
+  &.is-circle {
+    border-radius: 50% !important;
+  }
+}
+
+.el-dialog {
+  transform: none;
+  left: 0;
+  position: relative;
+  margin: 0 auto;
+  .el-dialog__header {
+    padding: 12px 10px 10px 20px;
+    background: rgb(19, 64, 205);
+    font-size: 17px;
+    // 弹出的编辑页面-标题
+    .el-dialog__title {
+      // padding-left: 17px;
+      font-size: 17px;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    // 弹出的编辑页面-右侧关闭按钮
+    .el-dialog__headerbtn {
+      top: 16px;
+      right: 15px;
+      .el-dialog__close {
+        font-weight: 600;
+        color: #ffffff;
+      }
+    }
+  }
+}
+
+.el-table .el-table__header-wrapper th,
+.el-table .el-table__fixed-header-wrapper th {
+  height: 50px !important;
+  background-color: rgb(66, 92, 252) !important;
+  color: #ffffff !important;
+}

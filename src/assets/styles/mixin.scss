@@ -1,0 +1,19 @@
+@import './themeVariable.scss'; //导入颜色列表
+
+//取出主题色
+@mixin themify($themes) {
+    @each $theme-name,
+    $map in $themes {
+        $myMap: $map !global; //全局变量供函数调用
+        //新定义一个类
+        // 这个案例中至多会生成.theme-blove .theme-flammulated
+        .theme-#{$theme-name} {
+            @content; //插入位置
+        }
+    }
+}
+
+//从主题色map中取出对应颜色
+@function themed($key) {
+    @return map-get($myMap, $key)
+}

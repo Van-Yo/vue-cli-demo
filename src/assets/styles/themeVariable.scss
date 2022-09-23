@@ -1,0 +1,29 @@
+@import './variable.scss'; //导入常用颜色变量
+$themes:(blove:( //主题 蓝
+        //布局
+        basis-color: $blove-color,
+        menu-hover-color: #FFFFFF,
+        them-title-background:#D2D8EA,
+        them-title-color: #1684FC,
+        // 按钮
+        btn-primary-background: $blove-color,
+        btn-primary-boder: 1px solid $blove-color,
+        btn-primary-color: #FFFFFF,
+        btn-primary-background-hover:#409eff,
+        btn-primary-boder-hover: 1px solid #409eff,
+        btn-primary-color-hover: #FFFFFF,
+    ),
+    flammulated:( //主题 红 
+        // 布局
+        basis-color: $flammulated-color,
+        menu-hover-color: #FFFFFF,
+        them-title-background: #EAD2D2,
+        them-title-color: #E33F3F,
+        // 按钮
+        btn-primary-background: $flammulated-color,
+        btn-primary-boder: 1px solid $flammulated-color,
+        btn-primary-color: #FFFFFF,
+        btn-primary-background-hover: #f86065,
+        btn-primary-boder-hover: 1px solid #f86065,
+        btn-primary-color-hover: #FFFFFF,
+    ))
