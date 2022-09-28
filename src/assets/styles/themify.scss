@@ -1,23 +1,20 @@
-@import './variable.scss';
 @import './mixin.scss';
 
 //按钮混合
 @mixin button($value:default) {
-    background-color: themed('btn-#{$value}-background');
-    border:themed('btn-#{$value}-color');
-    color:themed('btn-#{value}-color');
+    background: linear-gradient(themed('btn-#{$value}-background-hover'), themed('them-title-color')) !important;
+    border:themed('btn-#{$value}-color') !important;
+    color:themed('btn-#{$value}-color') !important;
     border: 1px solid;
     width:100px;
     height:50px;
     border-radius: 10px;
 
     &:hover {
-        background-color: themed('btn-#{$value}-background-hover');
-        border:themed('btn-#{$value}-border-hover');
-        color:themed('btn-#{$value}-color-hover');
+        background: linear-gradient(themed('them-title-color'), themed('btn-#{$value}-background-hover')) !important;
+        border:themed('btn-#{$value}-border-hover') !important;
+        color:themed('btn-#{$value}-color-hover') !important;
     }
-
-
 }
 
 //全局类 使用混合方法

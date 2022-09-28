@@ -56,6 +56,10 @@
               </el-dropdown-menu>
             </el-dropdown>
           </div>
+          <div style="margin-left:15px;color:#fff;font-size:20px;cursor: pointer;" @click="changeTheme">
+            <i v-show="!isLightTheme" class="el-icon-sunny" />
+            <i v-show="isLightTheme" class="el-icon-moon" />
+          </div>
         </el-header>
         <el-main><router-view /></el-main>
       </el-container>
@@ -70,6 +74,11 @@ export default {
   data() {
     return {
       isCollapse: true
+    }
+  },
+  computed: {
+    isLightTheme() {
+      return this.$store.state.user.theme === 'blove'
     }
   },
   created() {},
@@ -88,6 +97,13 @@ export default {
     },
     handleCommand(command) {
       if (command === 'loginOut') this.loginOut()
+    },
+    changeTheme() {
+      if (this.$store.state.user.theme === 'blove') {
+        this.$store.dispatch('themeChange', 'flammulated')
+      } else {
+        this.$store.dispatch('themeChange', 'blove')
+      }
     }
   }
 }

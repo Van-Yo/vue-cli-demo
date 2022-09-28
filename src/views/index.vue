@@ -1,12 +1,11 @@
 <template>
   <div class="container-area">
-    <div class="buttonClass" @click="goto('downloadPDF')">下载PDF</div>
-    <div class="buttonClass" @click="goto('print')">打印</div>
-    <div class="buttonClass" @click="goto('echarts')">echarts</div>
-    <div class="buttonClass" @click="goto('three')">three</div>
-    <div class="buttonClass" @click="goto('svgIconUse')">svgIconUse</div>
-    <div class="buttonClass" @click="goto('rate')">还贷器</div>
-    <div class="buttonClass" @click="changeTheme">主题切换</div>
+    <div class="buttonClass them-btn-primary" @click="goto('downloadPDF')">下载PDF</div>
+    <div class="buttonClass them-btn-primary" @click="goto('print')">打印</div>
+    <div class="buttonClass them-btn-primary" @click="goto('echarts')">echarts</div>
+    <div class="buttonClass them-btn-primary" @click="goto('three')">three</div>
+    <div class="buttonClass them-btn-primary" @click="goto('svgIconUse')">svg和主题色</div>
+    <div class="buttonClass them-btn-primary" @click="goto('rate')">还贷器</div>
   </div>
 </template>
 
@@ -20,13 +19,6 @@ export default {
   methods: {
     goto(name) {
       this.$router.push(name)
-    },
-    changeTheme() {
-      if (this.$store.state.user.theme === 'blove') {
-        this.$store.dispatch('themeChange', 'flammulated')
-      } else {
-        this.$store.dispatch('themeChange', 'blove')
-      }
     }
   }
 }
@@ -48,7 +40,7 @@ export default {
         border-top-right-radius: 6px;
         border-bottom-left-radius: 6px;
         border-bottom-right-radius: 6px;
-        box-shadow: inset 0px 1px 0px 0px #97c4fe;
+        // box-shadow: inset 0px 1px 0px 0px #97c4fe;
         text-shadow: inset 0px 1px 0px #1570cd;
         background: linear-gradient(#3d94f6, #1e62d0);
         display: flex;
