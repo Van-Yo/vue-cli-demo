@@ -32,4 +32,11 @@ export default {
 }
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+@import './assets/styles/mixin.scss';
+@include themify($themes) {
+  #nprogress .bar {
+    background: themed('them-title-color') !important; //自定义颜色
+  }
+}
+</style>

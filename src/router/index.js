@@ -2,8 +2,20 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import store from '@/store'
 import { getToken } from '@/utils/user'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
 
 Vue.use(VueRouter)
+
+NProgress.configure({
+  easing: 'ease', // 动画方式，和css动画属性一样（默认：ease）
+  speed: 500, // 递增进度条的速度，单位ms（默认： 200）
+  showSpinner: false, // 是否显示加载ico
+  trickle: true, // 是否自动递增
+  trickleSpeed: 200, // 自动递增间隔
+  minimum: 0.3, // 初始化时的最小百分比，0-1（默认：0.08）
+  parent: '#app'
+})
 
 // 避免重复触发了同一个路由引起报错
 const originalPush = VueRouter.prototype.push
@@ -51,6 +63,7 @@ const router = new VueRouter({
 
 // 定义全局前置守卫（里面有两个坑要注意）
 router.beforeEach((to, from, next) => {
+  NProgress.start()
   // console.log(to, from)
   // // 通过自定义方法获取用户 token 用来判断用户登录状态
   const token = getToken()
@@ -86,6 +99,10 @@ router.beforeEach((to, from, next) => {
     }
   }
   next()
+})
+
+router.afterEach(() => {
+  NProgress.done()
 })
 
 export default router
