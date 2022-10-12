@@ -13,7 +13,7 @@
             </template>
             <el-menu-item-group>
               <span slot="title">分组一</span>
-              <el-menu-item index="1-1">选项1</el-menu-item>
+              <el-menu-item index="1-1" @click="goTo('frontendPark')">frontend-park</el-menu-item>
               <el-menu-item index="1-2">选项2</el-menu-item>
             </el-menu-item-group>
             <el-menu-item-group title="分组2">
@@ -83,6 +83,9 @@ export default {
   },
   created() {},
   methods: {
+    goTo(url) {
+      this.$router.push(url)
+    },
     handleOpen(key, keyPath) {
       console.log(key, keyPath)
     },

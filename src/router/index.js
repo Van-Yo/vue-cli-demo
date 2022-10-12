@@ -44,6 +44,7 @@ const staticRoutes = [
       { path: 'print', name: 'print', component: () => import('@/views/print') },
       { path: 'svgIconUse', name: 'svgIconUse', component: () => import('@/views/svgIconUse') },
       { path: 'rate', name: 'rate', component: () => import('@/views/Rate') },
+      { path: 'frontendPark', name: 'frontendPark', component: () => import('@/views/frontendPark') },
       {
         path: '404',
         name: '404',
