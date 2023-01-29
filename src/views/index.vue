@@ -6,6 +6,7 @@
     <div class="buttonClass them-btn-primary" @click="goto('three')">three</div>
     <div class="buttonClass them-btn-primary" @click="goto('svgIconUse')">svg和主题色</div>
     <div class="buttonClass them-btn-primary" @click="goto('rate')">还贷器</div>
+    <div class="buttonClass them-btn-primary" @click="goto('fileUpload')">文件上传</div>
   </div>
 </template>
 
