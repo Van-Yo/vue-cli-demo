@@ -98,6 +98,7 @@ const user = {
               { path: '/echarts', name: 'echarts', component: 'echarts' },
               { path: '/three', name: 'three', component: 'three' },
               { path: '/dataHandle', name: 'dataHandle', component: 'dataHandle' },
+              { path: '/imgViewList', name: 'imgViewList', component: 'imgViewList' },
               {
                 path: '*',
                 redirect: '/404'
