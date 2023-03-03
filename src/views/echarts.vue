@@ -6,6 +6,7 @@
 
 <script>
 import * as echarts from 'echarts'
+import axios from 'axios'
 export default {
   components: {},
   data() {
@@ -13,7 +14,8 @@ export default {
   },
   created() {},
   mounted() {
-    this.initChart()
+    // this.initChart()
+    this.initMap()
   },
   methods: {
     initChart() {
@@ -48,6 +50,35 @@ export default {
       window.onresize = function() {
         myChart.resize()
       }
+    },
+    initMap() {
+      var myChart = echarts.init(document.getElementById('main'))
+      axios.get('11223.json').then(res => {
+        console.log(res)
+        echarts.registerMap('地图', res.data)
+        const option = {
+          series: [
+            {
+              name: '地图',
+              type: 'map',
+              map: '地图',
+              itemStyle: {
+                areaColor: '#11225c',
+                borderColor: '#00A5FE',
+                borderWidth: 1
+              },
+              label: {
+                show: true,
+                color: '#fff'
+              }
+            }
+          ]
+        }
+        myChart.setOption(option)
+      })
+      myChart.on('click', params => {
+        console.log(params)
+      })
     }
   }
 }
