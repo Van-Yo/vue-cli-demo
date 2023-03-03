@@ -46,6 +46,7 @@ const user = {
       // 先将 JSON 格式的路由列表解析为 JavaScript List
       // 再用路由解析函数解析 List 为真正的路由列表
       state.routeList = filterAsyncRouter(JSON.parse(JSON.stringify(data)))
+      console.log(state.routeList, '111111111111111111111111111111')
       // state.routeList = data.routes
       // 修改路由获取状态
       state.hasGetRoute = true
@@ -96,6 +97,7 @@ const user = {
             routes: [
               { path: '/echarts', name: 'echarts', component: 'echarts' },
               { path: '/three', name: 'three', component: 'three' },
+              { path: '/dataHandle', name: 'dataHandle', component: 'dataHandle' },
               {
                 path: '*',
                 redirect: '/404'

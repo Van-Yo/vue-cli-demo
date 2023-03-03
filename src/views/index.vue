@@ -7,6 +7,7 @@
     <div class="buttonClass them-btn-primary" @click="goto('svgIconUse')">svg和主题色</div>
     <div class="buttonClass them-btn-primary" @click="goto('rate')">还贷器</div>
     <div class="buttonClass them-btn-primary" @click="goto('fileUpload')">文件上传</div>
+    <div class="buttonClass them-btn-primary" @click="goto('dataHandle')">JS数据处理</div>
   </div>
 </template>
 
@@ -49,6 +50,7 @@ export default {
         align-items: center;
         cursor: pointer;
         margin-right: 10px;
+        transition: all 3s ease;
     }
 
     .buttonClass:hover {
