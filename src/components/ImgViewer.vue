@@ -1,6 +1,6 @@
-/** <ImgViewer :show.sync="showViewer" :img-src="list" />*/
+/** <ImgViewer v-if="showViewer" :img-src="imgList" @closeImg="closeImg" />*/
 <template>
-  <div v-show="show" class="container-area">
+  <div class="container-area">
     <div class="container">
       <img
         id="image"
@@ -43,10 +43,6 @@
 export default {
   components: {},
   props: {
-    show: {
-      type: Boolean,
-      default: false
-    },
     imgSrc: {
       type: Array,
       default: () => []
@@ -97,9 +93,9 @@ export default {
         'deg)'
     },
     close() {
-      this.$emit('update:show', false)
       this.resetImg()
       this.showCurrentIndex = 0
+      this.$emit('closeImg')
     },
     add(ratio) {
       this.scale *= ratio

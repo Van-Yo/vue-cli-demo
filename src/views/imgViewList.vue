@@ -1,12 +1,13 @@
 <template>
   <div class="container-area">
     <el-button type="primary" @click="viewer">查看大图</el-button>
-    <ImgViewer :show.sync="showViewer" :img-src="imgList" />
+    <ImgViewer v-if="showViewer" :img-src="imgList" @closeImg="closeImg" />
   </div>
 </template>
 
 <script>
-import ImgViewer from '@/components/ImgViewer'
+// 分包
+const ImgViewer = () => import(/* webpackChunkName: "ImgViewer" */ '@/components/ImgViewer')
 export default {
   components: {
     ImgViewer
@@ -27,6 +28,9 @@ export default {
   methods: {
     viewer() {
       this.showViewer = true
+    },
+    closeImg() {
+      this.showViewer = false
     }
   }
 }
