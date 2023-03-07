@@ -99,6 +99,7 @@ const user = {
               { path: '/three', name: 'three', component: 'three' },
               { path: '/dataHandle', name: 'dataHandle', component: 'dataHandle' },
               { path: '/imgViewList', name: 'imgViewList', component: 'imgViewList' },
+              { path: '/videoLive', name: 'videoLive', component: 'videoLive' },
               {
                 path: '*',
                 redirect: '/404'

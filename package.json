@@ -16,6 +16,7 @@
     "echarts": "^5.2.2",
     "element-ui": "^2.15.6",
     "file-saver": "^2.0.5",
+    "flv.js": "^1.6.2",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
     "mqtt": "^4.3.6",

@@ -9,6 +9,7 @@
     <div class="buttonClass them-btn-primary" @click="goto('fileUpload')">文件上传</div>
     <div class="buttonClass them-btn-primary" @click="goto('dataHandle')">JS数据处理</div>
     <div class="buttonClass them-btn-primary" @click="goto('imgViewList')">查看大图</div>
+    <div class="buttonClass them-btn-primary" @click="goto('videoLive')">直播</div>
   </div>
 </template>
 

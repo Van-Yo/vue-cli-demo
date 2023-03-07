@@ -9,6 +9,7 @@ import './plugins/element.js' // element
 import './assets/styles/index.scss'
 import './assets/icons' // icon
 import './plugins/echarts' // echarts
+import './plugins/flv' // flv
 import print from './utils/print.js'
 Vue.use(print)
 Vue.config.productionTip = false
