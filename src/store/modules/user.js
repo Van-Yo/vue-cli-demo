@@ -96,10 +96,11 @@ const user = {
             token,
             routes: [
               { path: '/echarts', name: 'echarts', component: 'echarts' },
-              { path: '/three', name: 'three', component: 'three' },
+              { path: '/three', name: 'three', component: '14龟池过滤' },
               { path: '/dataHandle', name: 'dataHandle', component: 'dataHandle' },
               { path: '/imgViewList', name: 'imgViewList', component: 'imgViewList' },
               { path: '/videoLive', name: 'videoLive', component: 'videoLive' },
+              { path: '/cesium', name: 'cesium', component: 'cesium/test2' },
               {
                 path: '*',
                 redirect: '/404'
