@@ -46,7 +46,7 @@ export default {
       const geometry = new THREE.BoxGeometry(1, 1, 1)
 
       const textureLoader = new THREE.TextureLoader()
-      const doorColorTexture = textureLoader.load('grocery.png')
+      const doorColorTexture = textureLoader.load('5.jpg')
       // ***************************************************************** 纹理偏移 *****************************************************************
       // doorColorTexture.offset.x = 0.5
       // doorColorTexture.offset.y = 0.5
@@ -54,11 +54,11 @@ export default {
       // ***************************************************************** 纹理旋转 *****************************************************************
       // doorColorTexture.rotation = Math.PI / 4
       // ***************************************************************** 纹理中心点 *****************************************************************
-      // doorColorTexture.center.set(0.5, 0.5)
+      doorColorTexture.center.set(0.5, 0.5)
       // ***************************************************************** 纹理重复 *****************************************************************
-      doorColorTexture.repeat.set(2, 3)
-      doorColorTexture.wrapS = THREE.RepeatWrapping
-      doorColorTexture.wrapT = THREE.RepeatWrapping
+      // doorColorTexture.repeat.set(2, 3)
+      // doorColorTexture.wrapS = THREE.RepeatWrapping
+      // doorColorTexture.wrapT = THREE.RepeatWrapping
       // 创建材质
       const material = new THREE.MeshBasicMaterial({
         map: doorColorTexture

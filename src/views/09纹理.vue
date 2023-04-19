@@ -47,7 +47,7 @@ export default {
 
       // ***************************************************************** 纹理 *****************************************************************
       const textureLoader = new THREE.TextureLoader()
-      const doorColorTexture = textureLoader.load('logo.png')
+      const doorColorTexture = textureLoader.load('5.jpg')
       // 创建材质
       const material = new THREE.MeshBasicMaterial({
         map: doorColorTexture

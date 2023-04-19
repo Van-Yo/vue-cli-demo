@@ -127,17 +127,17 @@ export default {
       const loader = new GLTFLoader()
       console.log('loader', loader)
 
-      loader.load('scene.gltf', (gltf) => {
-        console.log('222222222222', gltf.scene)
-        gltf.scene.scale.set(0.13, 0.13, 0.13)
-        // gltf.scene.position.y = 2.3
-        // gltf.scene.position.x = -2.075
-        // gltf.scene.position.y = 2.3
-        gltf.scene.position.set(-3.25, 2.1, -2.1)
-        this.scene.add(gltf.scene)
-      }, err => {
-        console.log(err)
-      })
+      // loader.load('scene.gltf', (gltf) => {
+      //   console.log('222222222222', gltf.scene)
+      //   gltf.scene.scale.set(0.13, 0.13, 0.13)
+      //   // gltf.scene.position.y = 2.3
+      //   // gltf.scene.position.x = -2.075
+      //   // gltf.scene.position.y = 2.3
+      //   gltf.scene.position.set(-3.25, 2.1, -2.1)
+      //   this.scene.add(gltf.scene)
+      // }, err => {
+      //   console.log(err)
+      // })
 
       loader.load('stone_altar/scene.gltf', (gltf) => {
         console.log('3333333333', gltf.scene)
@@ -192,31 +192,31 @@ export default {
       /**
        * 创建一个设置重复纹理的管道
        */
-      var curve = new THREE.CatmullRomCurve3([
-        new THREE.Vector3(3.75, 1, 2.65),
-        new THREE.Vector3(3.75, 4, 2.65),
-        new THREE.Vector3(-3.4, 4, -2.1),
-        new THREE.Vector3(-3.4, 2, -2.1)
-      ])
-      var tubeGeometry = new THREE.TubeGeometry(curve, 100, 0.05, 50, false)
-      var textureLoader = new THREE.TextureLoader()
-      var texture = textureLoader.load('water.jpg')
-      // 设置阵列模式为 RepeatWrapping
-      texture.wrapS = THREE.RepeatWrapping
-      texture.wrapT = THREE.RepeatWrapping
-      // 设置x方向的偏移(沿着管道路径方向)，y方向默认1
-      // 等价texture.repeat= new THREE.Vector2(20,1)
-      texture.repeat.x = 60
-      var tubeMaterial = new THREE.MeshPhongMaterial({
-        map: texture,
-        transparent: true,
-        opacity: 0.8
-      })
-      this.timer = setInterval(() => {
-        texture.offset.x -= 0.1
-      }, 100)
-      const tubeCube = new THREE.Mesh(tubeGeometry, tubeMaterial)
-      this.group2.add(tubeCube)
+      // var curve = new THREE.CatmullRomCurve3([
+      //   new THREE.Vector3(3.75, 1, 2.65),
+      //   new THREE.Vector3(3.75, 4, 2.65),
+      //   new THREE.Vector3(-3.4, 4, -2.1),
+      //   new THREE.Vector3(-3.4, 2, -2.1)
+      // ])
+      // var tubeGeometry = new THREE.TubeGeometry(curve, 100, 0.05, 50, false)
+      // var textureLoader = new THREE.TextureLoader()
+      // var texture = textureLoader.load('water.jpg')
+      // // 设置阵列模式为 RepeatWrapping
+      // texture.wrapS = THREE.RepeatWrapping
+      // texture.wrapT = THREE.RepeatWrapping
+      // // 设置x方向的偏移(沿着管道路径方向)，y方向默认1
+      // // 等价texture.repeat= new THREE.Vector2(20,1)
+      // texture.repeat.x = 60
+      // var tubeMaterial = new THREE.MeshPhongMaterial({
+      //   map: texture,
+      //   transparent: true,
+      //   opacity: 0.8
+      // })
+      // this.timer = setInterval(() => {
+      //   texture.offset.x -= 0.1
+      // }, 100)
+      // const tubeCube = new THREE.Mesh(tubeGeometry, tubeMaterial)
+      // this.group2.add(tubeCube)
 
       this.scene.add(this.group2)
 

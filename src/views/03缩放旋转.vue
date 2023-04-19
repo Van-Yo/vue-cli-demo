@@ -13,7 +13,8 @@ export default {
     return {
       scene: null,
       camera: null,
-      renderer: null
+      renderer: null,
+      cube: null
     }
   },
   mounted() {
@@ -47,17 +48,13 @@ export default {
       // 创建材质
       const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
       // 根据几何体和材质创建物体
-      const cube = new THREE.Mesh(geometry, material)
-      console.log(cube)
-
-      // ***************************************************************** 修改物体位置 *****************************************************************
-      // cube.scale.set(3, 2, 1)
-      // cube.scale.x = 5
+      this.cube = new THREE.Mesh(geometry, material)
+      console.log(this.cube)
 
       // ***************************************************************** 修改物体旋转 *****************************************************************
-      cube.rotation.set(Math.PI / 9, 0, 0)
+      this.cube.rotation.set(Math.PI / 9, 0, 0)
       // 将物体添加到场景中
-      this.scene.add(cube)
+      this.scene.add(this.cube)
 
       // 坐标轴辅助器
       const axesHelper = new THREE.AxesHelper(5)
@@ -81,6 +78,8 @@ export default {
     },
     // 一直渲染
     render() {
+      // ***************************************************************** 动态旋转 *****************************************************************
+      this.cube.rotation.x += 0.03
       this.renderer.render(this.scene, this.camera)
       requestAnimationFrame(this.render)
     }
