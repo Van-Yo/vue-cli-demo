@@ -1,5 +1,5 @@
 <template>
-  <div class="video-area">
+  <div v-loading="loading" class="video-area">
     <video
       :id="'videoElement'+id"
       autoplay
@@ -26,7 +26,8 @@ export default {
       listenFlvFramesTimer: null,
       lastDecodedFrame: 0,
       timer: null,
-      reFlvRevertFlag: ''
+      reFlvRevertFlag: '',
+      loading: false
     }
   },
   watch: {
@@ -38,9 +39,11 @@ export default {
   },
   created() {},
   mounted() {
+    // console.log(this.videoUrl, 'videoUrl')
     this.videoUrl && this.flvRevert(this.videoUrl)
   },
   destroyed() {
+    // console.log('destroyed')
     this.closeFlv()
     this.timer && clearInterval(this.timer)
     this.listenFlvFramesTimer && clearInterval(this.listenFlvFramesTimer)
@@ -53,6 +56,7 @@ export default {
       /**
        *
        */
+      this.loading = true
       if (this.listenFlvFramesTimer) {
         clearInterval(this.listenFlvFramesTimer)
       }
@@ -82,25 +86,25 @@ export default {
         this.flvPlayer.attachMediaElement(videoElement)
 
         // event-断线重连
-        // this.flvPlayer.on(
-        //   this.$flvjs.Events.ERROR,
-        //   (errorType, errorDetail, errorInfo) => {
-        //     console.log('errorType:', errorType);
-        //     console.log('errorDetail:', errorDetail);
-        //     console.log('errorInfo:', errorInfo);
-        //     // this.loadStatus=true
-        //     // this.statusMsg="正在重连。。。"
-        //     // 视频出错后销毁重新创建
-        //     if (this.flvPlayer) {
-        //       this.flvPlayer.pause();
-        //       this.flvPlayer.unload();
-        //       this.flvPlayer.detachMediaElement();
-        //       this.flvPlayer.destroy();
-        //       this.flvPlayer = null;
-        //       this.flvRevert(url);
-        //     }
-        //   }
-        // );
+        this.flvPlayer.on(
+          this.$flvjs.Events.ERROR,
+          (errorType, errorDetail, errorInfo) => {
+            console.log('errorType:', errorType)
+            console.log('errorDetail:', errorDetail)
+            console.log('errorInfo:', errorInfo)
+            // this.loadStatus=true
+            // this.statusMsg="正在重连。。。"
+            // 视频出错后销毁重新创建
+            if (this.flvPlayer) {
+              this.flvPlayer.pause()
+              this.flvPlayer.unload()
+              this.flvPlayer.detachMediaElement()
+              this.flvPlayer.destroy()
+              this.flvPlayer = null
+              this.flvRevert(url)
+            }
+          }
+        )
         // event-检测推流信息
         // 初始化lastDecodedFrame等于0，然后让流中的decodedFrames一直赋给lastDecodedFrame，然后判断两次监听到的decodedFrames是否相等，如果相等表示卡了
         this.flvPlayer.on('statistics_info', res => {
@@ -129,9 +133,6 @@ export default {
             this.flvRevert(url)
           }
         })
-        // this.$nextTick(() => {
-        //   this.loading = true;
-        // });
         // load
         this.flvPlayer.load()
         // play
@@ -157,9 +158,7 @@ export default {
               this.lastDecodedFrame === 0 &&
               this.reFlvRevertFlag !== 'fulfilled'
             ) {
-              // this.$nextTick(() => {
-              //   this.loading = false;
-              // });
+              // this.loading = false
               // 发心跳
               // pushVideo({
               //   deviceId: this.deviceId,
@@ -180,10 +179,11 @@ export default {
           playPromise
             .then(() => {
               this.reFlvRevertFlag = 'fulfilled'
+              this.listenFlvFramesTimer && clearInterval(this.listenFlvFramesTimer)
               // console.log('success');
-              // this.$nextTick(() => {
-              //   this.loading = false;
-              // });
+              this.$nextTick(() => {
+                this.loading = false
+              })
               // 追帧定时器
               const timer = setInterval(() => {
                 if (!videoElement.buffered.length) {
@@ -202,6 +202,8 @@ export default {
               // console.log('error' + error);
               // this.$message.error('设备未响应，请稍后重试');
               this.reFlvRevertFlag = 'rejected'
+              this.listenFlvFramesTimer && clearInterval(this.listenFlvFramesTimer)
+              // this.loading = false
             })
         }
       }
@@ -225,6 +227,12 @@ export default {
     height: 100%;
     video{
       background: #000;
+    }
+    ::v-deep .el-loading-mask {
+      background-color: rgba(0, 0, 0, 0);
+      .el-loading-spinner .path {
+        stroke: #01e5ff;
+      }
     }
 }
 </style>
