@@ -15,11 +15,11 @@ export default {
   data() {
     return {
       imgList: [
-        '1.jpg',
-        '2.jpg',
-        '3.jpg',
-        '4.jpg',
-        '5.jpg'
+        '/imgViewer/1.jpg',
+        '/imgViewer/2.jpg',
+        '/imgViewer/3.jpg',
+        '/imgViewer/4.jpg',
+        '/imgViewer/5.jpg'
       ],
       showViewer: false
     }
