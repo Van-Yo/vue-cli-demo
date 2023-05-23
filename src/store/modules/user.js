@@ -101,6 +101,7 @@ const user = {
               { path: '/imgViewList', name: 'imgViewList', component: 'imgViewList' },
               { path: '/videoLive', name: 'videoLive', component: 'videoLive' },
               { path: '/cesium', name: 'cesium', component: 'cesium/test2' },
+              { path: '/asyncAwait', name: 'asyncAwait', component: 'asyncAwait' },
               {
                 path: '*',
                 redirect: '/404'

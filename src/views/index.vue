@@ -10,6 +10,8 @@
     <div class="buttonClass them-btn-primary" @click="goto('dataHandle')">JS数据处理</div>
     <div class="buttonClass them-btn-primary" @click="goto('imgViewList')">查看大图</div>
     <div class="buttonClass them-btn-primary" @click="goto('videoLive')">直播</div>
+    <div class="buttonClass them-btn-primary" @click="goto('cesium')">cesium</div>
+    <div class="buttonClass them-btn-primary" @click="goto('asyncAwait')">asyncAwait</div>
   </div>
 </template>
 
