@@ -19,14 +19,15 @@
 
     <el-button slot="trigger" size="small" type="primary" @click="base64ToFile()">base64转File</el-button>
     <p />
+    <el-button slot="trigger" size="small" type="primary" @click="picLook()">查看图片</el-button>
+    <p />
     <el-button slot="trigger" size="small" type="primary" @click="base64ToBlob()">base64转Blob</el-button>
     <p>{{ blob }}</p>
     <el-button slot="trigger" size="small" type="primary" @click="blob2File(blob,'新文件')">Blob转File</el-button>
     <el-button slot="trigger" size="small" type="primary" @click="blob2ArrayBuffer(blob,'新文件')">Blob转ArrayBuffer</el-button>
     <el-button slot="trigger" size="small" type="primary" @click="downloadBlobUrl">Blob URL 用于文件上传下载</el-button>
-
-    <el-input v-model="jsonInput" />
-    <el-button slot="trigger" size="small" type="primary" @click="filterData()">筛选</el-button>
+    <p />
+    <img :src="base64" alt="">
   </div>
 </template>
 
@@ -39,39 +40,12 @@ export default {
       base64: 'data:image/jpeg;base64,',
       file: null,
       blob: '',
-      jsonInput: null
+      jsonInput: null,
+      imgUrl: null,
+      fileFile: null
     }
   },
   methods: {
-    filterData() {
-      const res = []
-      JSON.parse(this.jsonInput).map(item => {
-        const result = res.some(jtem => {
-          return jtem.fullStationId === item.fullStationId
-        })
-        if (!result) {
-          res.push({
-            fullStationId: item.fullStationId,
-            stationName: item.stationName,
-            fastChargeNum: item.fastChargeNum,
-            fastChargeIdleNum: item.fastChargeIdleNum,
-            slowChargeNum: item.slowChargeNum,
-            slowChargeIdleNum: item.slowChargeIdleNum,
-            elecMarketPrice: item.elecMarketPrice,
-            elecSalePrice: item.elecSalePrice,
-            servMarketPrice: item.servMarketPrice,
-            servSalePrice: item.servSalePrice,
-            totalMarketPrice: item.totalMarketPrice,
-            totalSalePrice: item.totalSalePrice,
-            sortNum: item.sortNum,
-            bdLat: item.bdLat,
-            bdLng: item.bdLng,
-            address: item.address
-          })
-        }
-      })
-      console.log(res)
-    },
     submitUpload() {
     //   this.$refs.upload.submit()
       console.log(this.fileList)
@@ -122,8 +96,8 @@ export default {
       return new Blob([ab], { type: mimeString })
     },
     base64ToFile() {
-      const file = this.base64ImgtoFile(this.base64)
-      console.log(file)
+      this.fileFile = this.base64ImgtoFile(this.base64)
+      // console.log(file)
     },
     base64ToBlob() {
       const blob = this.dataURItoBlob(this.base64)
