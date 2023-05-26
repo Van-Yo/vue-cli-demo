@@ -5,6 +5,9 @@
       <label>
         <input id="visibilityCheckbox" type="checkbox" checked> 显示点云
       </label>
+      <label>
+        <el-button type="primary" @click="flyToHome">回到起点</el-button>
+      </label>
     </div>
   </div>
 </template>
@@ -12,6 +15,13 @@
 <script>
 export default {
   name: 'HelloWorld',
+  data() {
+    return {
+      droneAnimator: null,
+      addList: [],
+      timer: null
+    }
+  },
   mounted() {
     this.gerData()
   },
@@ -91,87 +101,43 @@ export default {
         console.log(error)
       }
 
-      var droneEntity = viewer.entities.add({
-        name: 'Aircraft',
-        position: Cesium.Cartesian3.fromDegrees(118.8, 31.9052, 40),
-        // orientation: Cesium.Transforms.headingPitchRollQuaternion(
-        //   Cesium.Cartesian3.fromDegrees(118.8, 31.9052, 40),
-        //   new Cesium.HeadingPitchRoll(1, 0, 0)
-        // ),
-        model: {
-          uri: 'cartoon_turtle/scene.gltf',
-          minimumPixelSize: 64
-        }
+      this.initPlaneViewer(viewer)
+    },
+    initPlaneViewer(viewer) {
+      // 实例化DroneFlightAnimator类
+      const initPosition = Cesium.Cartesian3.fromDegrees(118.8, 31.9052, 28)
+      this.droneAnimator = new DroneFlightAnimator({ viewer, initPosition }, (msg) => {
+        console.log(msg)
       })
-
-      // 创建线路实体
-      var lineEntity = viewer.entities.add({
-        polyline: {
-          positions: new Cesium.CallbackProperty(function() {
-            return [droneEntity.position.getValue(viewer.clock.currentTime)]
-          }, false),
-          width: 2,
-          material: new Cesium.PolylineGlowMaterialProperty({
-            glowPower: 0.3,
-            color: Cesium.Color.RED
-          })
-        }
+      this.mockAirlineCommand()
+    },
+    // 模拟航线指令:一秒钟接收一次飞行命令，30秒后结束飞行，飞回机巢
+    mockAirlineCommand() {
+      let long = 118.8
+      let lat = 31.9052
+      let hei = 28
+      this.timer = setInterval(() => {
+        long += (Math.random() * 0.0002 - 0.0001)
+        lat += (Math.random() * 0.0002 - 0.0001)
+        hei += (Math.random() * 3)
+        this.droneAnimator.flyTo(Cesium.Cartesian3.fromDegrees(long, lat, hei))
+      }, 1000)
+      setTimeout(() => {
+        clearInterval(this.timer)
+        this.delayGoHome()
+      }, 30000)
+    },
+    delayGoHome() {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          this.flyToHome()
+          resolve(true)
+        }, 1000)
       })
-
-      // 定义飞行动画
-      function flyToDestination(startPosition, endPosition, duration) {
-        var startTime = Cesium.JulianDate.now()
-        var endTime = Cesium.JulianDate.addSeconds(startTime, duration, new Cesium.JulianDate())
-
-        // 更新无人机位置
-        droneEntity.position = new Cesium.CallbackProperty(function(time) {
-          if (Cesium.JulianDate.compare(time, startTime) < 0) {
-            return startPosition
-          } else if (Cesium.JulianDate.compare(time, endTime) >= 0) {
-            return endPosition
-          } else {
-            var elapsedSeconds = Cesium.JulianDate.secondsDifference(time, startTime)
-            var progress = elapsedSeconds / duration
-            return Cesium.Cartesian3.lerp(startPosition, endPosition, progress, new Cesium.Cartesian3())
-          }
-        }, false)
-      }
-
-      // 3秒后更新无人机位置并开始飞行
-      setTimeout(function() {
-        flyToDestination(
-          Cesium.Cartesian3.fromDegrees(118.8, 31.9052, 40), // 当前位置作为起始点
-          Cesium.Cartesian3.fromDegrees(118.8005, 31.906, 120), // 下一个坐标B
-          10 // 飞行时间（秒）
-        )
-      }, 3000)
-      // 每帧更新渲染
-      viewer.scene.preRender.addEventListener(function() {
-        viewer.scene.requestRender()
-      })
-      // var startCartographic = Cesium.Cartographic.fromDegrees(
-      //   118.8, 31.9052, 40
-      // )
-      // var endCartographic = Cesium.Cartographic.fromDegrees(
-      //   118.8005, 31.906, 120
-      // )
-      // // 将Cartographic坐标转换为笛卡尔坐标
-      // var startCartesian = Cesium.Ellipsoid.WGS84.cartographicToCartesian(
-      //   startCartographic
-      // )
-      // var endCartesian = Cesium.Ellipsoid.WGS84.cartographicToCartesian(
-      //   endCartographic
-      // )
-
-      // // 创建线段实体
-      // var lineEntity = viewer.entities.add({
-      //   name: 'Line',
-      //   polyline: {
-      //     positions: [startCartesian, endCartesian],
-      //     width: 2,
-      //     material: Cesium.Color.RED
-      //   }
-      // })
+    },
+    // 飞回机巢
+    flyToHome() {
+      this.droneAnimator.flyTo(Cesium.Cartesian3.fromDegrees(118.8, 31.9052, 28))
     }
   }
 }
