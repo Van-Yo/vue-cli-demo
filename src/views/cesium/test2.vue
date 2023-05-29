@@ -107,25 +107,47 @@ export default {
       // 实例化DroneFlightAnimator类
       const initPosition = Cesium.Cartesian3.fromDegrees(118.8, 31.9052, 28)
       this.droneAnimator = new DroneFlightAnimator({ viewer, initPosition }, (msg) => {
-        console.log(msg)
+        // this.draw()
       })
       this.mockAirlineCommand()
     },
+    generateRandomBit() {
+      // 生成随机小数
+      var randomNum = Math.random()
+      // 将随机小数转换为0或1
+      if (randomNum < 0.5) {
+        return 0
+      } else {
+        return 1
+      }
+    },
     // 模拟航线指令:一秒钟接收一次飞行命令，30秒后结束飞行，飞回机巢
     mockAirlineCommand() {
-      let long = 118.8
-      let lat = 31.9052
-      let hei = 28
+      let aircraftLongitude = 118.8
+      let aircraftLatitude = 31.9052
+      let aircraftAltitude = 28
+      let gimbalPitchValue = -29.77056379217234
+      let gimbalYawValue = -141.52559171972544
       this.timer = setInterval(() => {
-        long += (Math.random() * 0.0002 - 0.0001)
-        lat += (Math.random() * 0.0002 - 0.0001)
-        hei += (Math.random() * 3)
-        this.droneAnimator.flyTo(Cesium.Cartesian3.fromDegrees(long, lat, hei))
-      }, 1000)
+        aircraftLongitude += (Math.random() * 0.0002 - 0.0001)
+        aircraftLatitude += (Math.random() * 0.0002 - 0.0001)
+        aircraftAltitude += (Math.random() * 3)
+        gimbalPitchValue += (Math.random() * 100 - 50)
+        gimbalYawValue += (Math.random() * 100 - 50)
+        const options = {
+          aircraftLongitude,
+          aircraftLatitude,
+          aircraftAltitude,
+          gimbalPitchValue,
+          gimbalYawValue,
+          isShoot: this.generateRandomBit()
+        }
+        this.droneAnimator.flyTo(options)
+      }, 3000)
       setTimeout(() => {
         clearInterval(this.timer)
         this.delayGoHome()
-      }, 30000)
+      }, 60000)
     },
     delayGoHome() {
       return new Promise((resolve, reject) => {
@@ -137,7 +159,12 @@ export default {
     },
     // 飞回机巢
     flyToHome() {
-      this.droneAnimator.flyTo(Cesium.Cartesian3.fromDegrees(118.8, 31.9052, 28))
+      const homeOptions = {
+        aircraftLongitude: '118.8',
+        aircraftLatitude: '31.9052',
+        aircraftAltitude: '28'
+      }
+      this.droneAnimator.flyTo(homeOptions)
     }
   }
 }

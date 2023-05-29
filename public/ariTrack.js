@@ -1,13 +1,12 @@
 /**
  * 指哪飞哪
- * options{}
+ * 初始化 options{}
  * options.viewer: cesium viewer
  * options.initPosition : Cesium.Cartesian3.fromDegrees(long, lat, height)
  * 例如：
  * this.droneAnimator = new DroneFlightAnimator({ viewer, Cesium.Cartesian3.fromDegrees(118.8, 31.9052, 28) }, (msg) => {
       console.log(msg)
    })
-   this.droneAnimator.flyTo(Cesium.Cartesian3.fromDegrees(long, lat, hei))
 */
 class DroneFlightAnimator {
   constructor(options,callback) {
@@ -22,9 +21,23 @@ class DroneFlightAnimator {
     });
     this.flightPath = null;
     this.callback = callback
+    this.primitivesone = null;
+    this.primitivestwo = null;
+    this.spotLightCamera = null;
   }
   
-  flyTo(destination) {
+  /**
+   * options{}
+   * options.aircraftLongitude   // 无人机经度（必传）
+   * options.aircraftLatitude     // 无人机纬度（必传）
+   * options.aircraftAltitude     // 无人机高度（必传）
+   * options.gimbalPitchValue     // 无人机云台俯仰角
+   * options.gimbalYawValue     // 无人机云台偏航角
+   * options.isShoot      // 是否为拍摄点
+  */
+  flyTo(options) {
+    this.RemovePrimitives()
+    let destination = Cesium.Cartesian3.fromDegrees(options.aircraftLongitude, options.aircraftLatitude, options.aircraftAltitude)
     const startLocation = this.droneEntity.position.getValue(Cesium.JulianDate.now());
     const startTime = Cesium.JulianDate.now();
 
@@ -67,6 +80,14 @@ class DroneFlightAnimator {
 
 
         this.drawPoint(this.droneEntity.position.getValue(destination))
+        if(options.isShoot){
+          this.SetLookCone({
+            destination,
+            gimbalPitchValue:options.gimbalPitchValue,
+            gimbalYawValue:options.gimbalYawValue
+          })
+        }
+        
         this.callback(this.droneEntity.position.getValue(destination))
         this.viewer.clock.onTick.removeEventListener(tickHandler);
         return;
@@ -103,4 +124,109 @@ class DroneFlightAnimator {
       }
     });
   }
+  /**
+     * 删除视锥
+     */
+  RemovePrimitives() {
+    if (this.primitivesone) {
+      this.primitivesone.destroy()
+      this.primitivestwo.destroy()
+      this.spotLightCamera = null;
+    }
+  }
+  SetLookCone(value) {
+
+    this.RemovePrimitives()
+
+    // setTimeout(() => {
+    //     this.RemovePrimitives()
+    // }, 2800)
+
+    // value = this.Lines.filter(function (item) {
+    //     return item.shootId == value;
+    // });
+
+    // value = value[0]
+    let positions = value.destination
+    this.spotLightCamera = new Cesium.Camera(this.viewer.scene);
+    let spotLightCamera = this.spotLightCamera
+
+    spotLightCamera.setView({
+        destination: positions,
+        orientation: {
+            heading: Cesium.Math.toRadians(value.gimbalYawValue),
+            pitch: Cesium.Math.toRadians(value.gimbalPitchValue),
+            roll: Cesium.Math.toRadians(0.0)
+        }
+    });
+
+
+
+    let scratchRight = new Cesium.Cartesian3();
+    let scratchRotation = new Cesium.Matrix3();
+    var scratchOrientation = new Cesium.Quaternion();
+
+    let position = spotLightCamera.positionWC;
+    let directions = spotLightCamera.directionWC;
+    let up = spotLightCamera.upWC;
+    let right = spotLightCamera.rightWC;
+    right = Cesium.Cartesian3.negate(right, scratchRight);
+
+    let rotation = scratchRotation;
+    Cesium.Matrix3.setColumn(rotation, 0, right, rotation);
+    Cesium.Matrix3.setColumn(rotation, 1, up, rotation);
+    Cesium.Matrix3.setColumn(rotation, 2, directions, rotation);
+    //计算视锥姿态
+    let orientation = Cesium.Quaternion.fromRotationMatrix(rotation, scratchOrientation);
+    spotLightCamera.frustum.near = 0.1;
+    spotLightCamera.frustum.far = 10;
+    //视锥轮廓线图形
+
+    let instanceOutline = new Cesium.GeometryInstance({
+        geometry: new Cesium.FrustumGeometry({
+            frustum: spotLightCamera.frustum,
+            origin: position,
+            orientation: orientation
+        }),
+        material: Cesium.Color.RED.withAlpha(1),
+        id: "pri" + this.viewer.scene.primitives.length + 1,
+        attributes: {
+            color: Cesium.ColorGeometryInstanceAttribute.fromColor(new Cesium.Color(1.0, 1.0, 0.0, 0.5)),
+            show: new Cesium.ShowGeometryInstanceAttribute(true)
+        }
+    });
+
+    let instance = new Cesium.GeometryInstance({
+        geometry: new Cesium.FrustumOutlineGeometry({
+            frustum: spotLightCamera.frustum,
+            origin: position,
+            orientation: orientation
+        }),
+        material: Cesium.Color.RED.withAlpha(0.1),
+        id: "pri0" + this.viewer.scene.primitives.length + 1,
+        attributes: {
+            color: Cesium.ColorGeometryInstanceAttribute.fromColor(new Cesium.Color(1.0, 0.0, 0.0, 1)),
+            show: new Cesium.ShowGeometryInstanceAttribute(true)
+        }
+    });
+
+    this.primitivesone = this.viewer.scene.primitives.add(new Cesium.Primitive({
+        geometryInstances: instance,
+        appearance: new Cesium.PerInstanceColorAppearance({
+            translucent: true,
+            flat: true
+        }),
+        asynchronous: false
+    }));
+
+    this.primitivestwo = this.viewer.scene.primitives.add(new Cesium.Primitive({
+        geometryInstances: instanceOutline,
+        appearance: new Cesium.PerInstanceColorAppearance({
+            translucent: true,
+            flat: true
+        }),
+        asynchronous: false
+    }));
+
+}
 }
