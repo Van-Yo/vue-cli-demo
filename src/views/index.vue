@@ -12,19 +12,79 @@
     <div class="buttonClass them-btn-primary" @click="goto('videoLive')">直播</div>
     <div class="buttonClass them-btn-primary" @click="goto('cesium')">cesium</div>
     <div class="buttonClass them-btn-primary" @click="goto('asyncAwait')">asyncAwait</div>
+    <div class="buttonClass them-btn-primary" @click="opendAddDialog">新增弹框</div>
+    <div class="buttonClass them-btn-primary" @click="opendEditDialog">修改弹框</div>
+    <Dialog :dialog="dialog" @reloadtable="handleQuery" />
   </div>
 </template>
 
 <script>
+import Dialog from '@/components/Dialog.vue'
 export default {
-  components: {},
+  components: { Dialog },
   data() {
-    return {}
+    return {
+      dialog: {
+        visible: false,
+        name: '11111',
+        region: '22',
+        date1: '2023-06-08',
+        date2: '11:51:01',
+        delivery: true,
+        type: ['美食/餐厅线上活动'],
+        resource: '线上品牌商赞助',
+        desc: 'desc',
+        id: ''
+      }
+    }
+  },
+  watch: {
+    'dialog.visible'(val) {
+      if (!val) {
+        console.log('parent close')
+      }
+    }
   },
   created() {},
   methods: {
     goto(name) {
       this.$router.push(name)
+    },
+    opendAddDialog() {
+      this.dialog = {
+        name: '',
+        region: '',
+        date1: '',
+        date2: '',
+        delivery: true,
+        type: [],
+        resource: '',
+        desc: '',
+        id: null,
+        visible: true
+      }
+    },
+    opendEditDialog() {
+      this.dialog = {
+        name: '11111',
+        region: '22',
+        date1: new Date(2023, 9, 10, 18, 40),
+        date2: new Date(2016, 9, 10, 18, 40),
+        delivery: true,
+        type: ['美食/餐厅线上活动'],
+        resource: '线上品牌商赞助',
+        desc: 'desc',
+        id: 11223872,
+        visible: true
+      }
+    },
+    handleQuery(data) {
+      console.log('parent', data)
+      if (data.id) {
+        console.log('parent:edit')
+      } else {
+        console.log('parent:add')
+      }
     }
   }
 }
