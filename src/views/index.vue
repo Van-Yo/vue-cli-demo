@@ -14,6 +14,7 @@
     <div class="buttonClass them-btn-primary" @click="goto('asyncAwait')">asyncAwait</div>
     <div class="buttonClass them-btn-primary" @click="opendAddDialog">新增弹框</div>
     <div class="buttonClass them-btn-primary" @click="opendEditDialog">修改弹框</div>
+    <div class="buttonClass them-btn-primary" @click="goto('offLineMap')">百度离线地图</div>
     <Dialog :dialog="dialog" @reloadtable="handleQuery" />
   </div>
 </template>

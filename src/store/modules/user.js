@@ -102,6 +102,7 @@ const user = {
               { path: '/videoLive', name: 'videoLive', component: 'videoLive' },
               { path: '/cesium', name: 'cesium', component: 'cesium/test2' },
               { path: '/asyncAwait', name: 'asyncAwait', component: 'asyncAwait' },
+              { path: '/offLineMap', name: 'offLineMap', component: 'offLineMap' },
               {
                 path: '*',
                 redirect: '/404'
