@@ -103,6 +103,8 @@ const user = {
               { path: '/cesium', name: 'cesium', component: 'cesium/test2' },
               { path: '/asyncAwait', name: 'asyncAwait', component: 'asyncAwait' },
               { path: '/offLineMap', name: 'offLineMap', component: 'offLineMap' },
+              { path: '/canvas', name: 'canvas', component: 'canvas' },
+              { path: '/editTable', name: 'editTable', component: 'editTable' },
               {
                 path: '*',
                 redirect: '/404'
