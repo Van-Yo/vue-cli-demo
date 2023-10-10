@@ -31,6 +31,7 @@ export default {
     }
   },
   watch: {
+    // 监听直播链接自动开启直播
     videoUrl(newVal, oldVal) {
       if (newVal) {
         this.flvRevert(newVal)
@@ -38,24 +39,12 @@ export default {
     }
   },
   created() {},
-  mounted() {
-    // console.log(this.videoUrl, 'videoUrl')
-    this.videoUrl && this.flvRevert(this.videoUrl)
-  },
   destroyed() {
-    // console.log('destroyed')
     this.closeFlv()
-    this.timer && clearInterval(this.timer)
-    this.listenFlvFramesTimer && clearInterval(this.listenFlvFramesTimer)
   },
   methods: {
-    /**
-     * flv.js转流
-     */
+    // 手动开启直播
     flvRevert(url) {
-      /**
-       *
-       */
       this.loading = true
       if (this.listenFlvFramesTimer) {
         clearInterval(this.listenFlvFramesTimer)
@@ -108,7 +97,7 @@ export default {
         // event-检测推流信息
         // 初始化lastDecodedFrame等于0，然后让流中的decodedFrames一直赋给lastDecodedFrame，然后判断两次监听到的decodedFrames是否相等，如果相等表示卡了
         this.flvPlayer.on('statistics_info', res => {
-          // console.log(res);
+          // console.log('statistics_info', res)
           // eslint-disable-next-line eqeqeq
           if (this.lastDecodedFrame == 0) {
             this.lastDecodedFrame = res.decodedFrames
@@ -123,7 +112,7 @@ export default {
           }
         })
         this.flvPlayer.on('loading_complete', res => {
-          console.log('视频播放结束，正在重新拉流')
+          // console.log('视频播放结束，正在重新拉流')
           if (this.flvPlayer) {
             this.flvPlayer.pause()
             this.flvPlayer.unload()
@@ -208,13 +197,17 @@ export default {
         }
       }
     },
+    // 手动关闭直播
     closeFlv() {
       if (this.flvPlayer) {
+        this.loading = false
         this.flvPlayer.pause()
         this.flvPlayer.unload()
         this.flvPlayer.detachMediaElement()
         this.flvPlayer.destroy()
         this.flvPlayer = null
+        this.timer && clearInterval(this.timer)
+        this.listenFlvFramesTimer && clearInterval(this.listenFlvFramesTimer)
       }
     }
   }

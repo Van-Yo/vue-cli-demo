@@ -1,10 +1,14 @@
 <template>
   <div class="container-area">
+    <div>
+      <el-input v-model="inputUrl" @change="inputChange" />
+    </div>
     <el-button type="primary" @click="play">播放视频</el-button>
+    <el-button type="primary" @click="close">关闭视频</el-button>
     <el-button type="primary" :disabled="canvasShowFlag" @click="openCtx">开启绘画</el-button>
     <el-button type="primary" :disabled="!canvasShowFlag" @click="closeCtx">关闭绘画</el-button>
     <div id="main" ref="videoElement" class="video-element">
-      <VideoCom :video-url="videoUrl" />
+      <VideoCom ref="videoCom" :video-url="videoUrl" />
       <canvas
         v-if="canvasShowFlag"
         id="myCanvas"
@@ -28,6 +32,7 @@ export default {
   },
   data() {
     return {
+      inputUrl: '',
       videoUrl: '',
       canvasShowFlag: false,
       mouseDownFlag: false,
@@ -40,8 +45,19 @@ export default {
     this.resizeCanvas()
   },
   methods: {
+    // 输入框修改链接自动开启直播
+    inputChange(val) {
+      this.videoUrl = val
+    },
+    // 手动开启直播
     play() {
-      this.videoUrl = 'https://218.94.141.148:9010/XH866437053791742/1.flv'
+      this.videoUrl = this.inputUrl
+      this.$refs.videoCom.flvRevert(this.videoUrl)
+    },
+    // 手动关闭直播
+    close() {
+      this.videoUrl = ''
+      this.$refs.videoCom.closeFlv()
     },
     /**
      * 3D控球：鼠标落下
