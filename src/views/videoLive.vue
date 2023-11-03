@@ -5,8 +5,9 @@
     </div>
     <el-button type="primary" @click="play">播放视频</el-button>
     <el-button type="primary" @click="close">关闭视频</el-button>
-    <el-button type="primary" :disabled="canvasShowFlag" @click="openCtx">开启绘画</el-button>
+    <el-button type="primary" :disabled="canvasShowFlag" @click="openCtx('rect')">开启画方框</el-button>
     <el-button type="primary" :disabled="!canvasShowFlag" @click="closeCtx">关闭绘画</el-button>
+    <el-button type="primary" :disabled="canvasShowFlag" @click="openCtx('line')">开启画直线</el-button>
     <div id="main" ref="videoElement" class="video-element">
       <VideoCom ref="videoCom" :video-url="videoUrl" />
       <canvas
@@ -36,8 +37,12 @@ export default {
       videoUrl: '',
       canvasShowFlag: false,
       mouseDownFlag: false,
-      x: '',
-      y: ''
+      startX: '',
+      startY: '',
+      ctxType: '',
+      endX: '',
+      endY: '',
+      pointRadius: 5
     }
   },
   created() {},
@@ -59,59 +64,96 @@ export default {
       this.videoUrl = ''
       this.$refs.videoCom.closeFlv()
     },
+    // 开启canvas
+    openCtx(flag) {
+      this.ctxType = flag
+      this.canvasShowFlag = true
+      this.$nextTick(() => {
+        this.getVideoWidthHeight('myCanvas')
+      })
+    },
+    // 关闭canvas
+    closeCtx() {
+      this.canvasShowFlag = false
+    },
     /**
-     * 3D控球：鼠标落下
+     * 鼠标落下
      */
     mousedown(e) {
       // console.log('鼠标落下');
       this.mouseDownFlag = true
-      this.x = e.offsetX // 鼠标落下时的X
-      this.y = e.offsetY // 鼠标落下时的Y
-      // console.log(this.x, this.y);
+      this.startX = e.offsetX // 鼠标落下时的X
+      this.startY = e.offsetY // 鼠标落下时的Y
+      console.log(this.startX, this.startY)
     },
     /**
-     * 3D控球：鼠标抬起
+     * 鼠标移动
      */
-    mouseup(e) {
-      // console.log('鼠标抬起');
-      // console.log(e.offsetX, e.offsetY);
-      this.mouseDownFlag = false
-      // const canvas = document.getElementById(
-      //   'myCanvas'
-      // )
-      // var ctx = canvas.getContext('2d')
-
-      // ctx.clearRect(0, 0, canvas.width, canvas.height)
-      if (this.x !== e.offsetX && this.y !== e.offsetY) {
-        console.log('拖动了')
-        console.log(this.x, this.y, e.offsetX, e.offsetY)
-        // const device = this.flvPlayersList[this.avtiveVideoIndex]
-        // if (device) {
-        //   const obj = {
-        //     deviceId: device.deviceId,
-        //     channelNo: device.channelNo,
-        //     startX: (this.x * 255) / canvas.width,
-        //     startY: 255 - (e.offsetY * 255) / canvas.height,
-        //     endX: (e.offsetX * 255) / canvas.width,
-        //     endY: 255 - (this.y * 255) / canvas.height
-        //   }
-        //   // console.log(obj);
-        //   camera3DControl(obj).then(res => {
-        //     // console.log(res);
-        //   })
-        // } else {
-        //   this.$message.error('请先选择设备')
-        // }
+    mousemove(e) {
+      if (this.ctxType === 'rect') {
+        this.drawRect(e)
+      } else if (this.ctxType === 'line') {
+        this.drawline(e)
       }
     },
     /**
-     * 3D控球：鼠标移动
+     * 鼠标抬起
      */
-    mousemove(e) {
-      this.drawRect(e)
+    mouseup(e) {
+      this.mouseDownFlag = false
+      if (this.ctxType === 'rect') {
+        if (this.startX !== e.offsetX && this.startY !== e.offsetY) {
+          console.log('拖动了')
+          console.log(this.startX, this.startY, e.offsetX, e.offsetY)
+        }
+      } else if (this.ctxType === 'line') {
+        this.endX = this.endX || this.startX
+        this.endY = this.endY || this.startY
+        console.log(this.startX, this.startY, this.endX, this.endY)
+        // 只有拖动鼠标才画点
+        if (this.startX !== this.endX || this.startY !== this.endY) {
+          this.drawRedPoint(this.startX, this.startY)
+          this.drawRedPoint(this.endX, this.endY)
+          // ...接下来操作
+        }
+        this.endX = this.endY = undefined
+      }
     },
     /**
-     * 3D控球：canvas绘矩形
+     * canvas绘直线
+     */
+    drawline(e) {
+      if (this.mouseDownFlag) {
+        this.endX = e.offsetX
+        this.endY = e.offsetY
+        const canvas = document.getElementById(
+          'myCanvas'
+        )
+        var ctx = canvas.getContext('2d')
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.strokeStyle = 'red'
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(this.startX, this.startY)
+        ctx.lineTo(this.endX, this.endY)
+        ctx.stroke()
+      }
+    },
+    /**
+     * canvas绘点
+     */
+    drawRedPoint(x, y) {
+      const canvas = document.getElementById(
+        'myCanvas'
+      )
+      var ctx = canvas.getContext('2d')
+      ctx.fillStyle = 'red'
+      ctx.beginPath()
+      ctx.arc(x, y, this.pointRadius, 0, 2 * Math.PI)
+      ctx.fill()
+    },
+    /**
+     * canvas绘矩形
      */
     drawRect(e) {
       if (this.mouseDownFlag) {
@@ -119,9 +161,8 @@ export default {
           'myCanvas'
         )
         var ctx = canvas.getContext('2d')
-        const x = this.x
-        const y = this.y
-
+        const x = this.startX
+        const y = this.startY
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.beginPath()
 
@@ -150,18 +191,8 @@ export default {
       const canvas = document.getElementById(canvasId)
       canvas.width = node.clientWidth
       canvas.height = node.clientHeight
-    },
-    // 开启canvas
-    openCtx() {
-      this.canvasShowFlag = true
-      this.$nextTick(() => {
-        this.getVideoWidthHeight('myCanvas')
-      })
-    },
-    // 关闭canvas
-    closeCtx() {
-      this.canvasShowFlag = false
     }
+
   }
 }
 </script>
