@@ -162,5 +162,25 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
+// el-dialog水平垂直居中
+::v-deep .el-dialog{
+  display: flex;
+  display: -ms-flex; /* 兼容IE */
+  flex-direction: column;
+  -ms-flex-direction: column; /* 兼容IE */
+  margin:0 !important;
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  max-height:calc(100% - 30px);
+  max-width:calc(100% - 30px);
+  .el-dialog__body{
+    max-height: 100%;
+    flex: 1;
+    -ms-flex: 1 1 auto; /* 兼容IE */
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+}
 </style>
