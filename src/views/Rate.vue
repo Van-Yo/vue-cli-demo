@@ -40,6 +40,7 @@
           </el-form>
         </el-row>
         <el-row>
+
           <el-table :data="brief">
             <el-table-column prop="moon" label="每月还款" />
             <el-table-column prop="allRate" label="总利息" />
@@ -54,6 +55,7 @@
               }
             "
           >{{ moreDetail ? '隐藏' : '详情' }}</el-button>
+          <el-button type="success" @click="exportTable">导出</el-button>
         </el-row>
         <el-row v-show="moreDetail" class="detail">
           <el-table
@@ -222,6 +224,8 @@
 
 <script>
 import * as echarts from 'echarts'
+import * as XLSX from 'xlsx'
+import FileSaver from 'file-saver'
 export default {
   components: {},
   data() {
@@ -284,7 +288,7 @@ export default {
       return this.form.rate / 100 / 12
     },
     qi() {
-      return this.form.year * 12
+      return 166
     },
     tiqianHuanBen() {
       return this.formTiqian.money * 10000
@@ -295,6 +299,17 @@ export default {
   },
   created() {},
   methods: {
+    exportTable() {
+      const worksheet = XLSX.utils.json_to_sheet(this.tableData)
+      const workbook = XLSX.utils.book_new()
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1')
+      const excelBuffer = XLSX.write(workbook, {
+        bookType: 'xlsx',
+        type: 'array'
+      })
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' })
+      FileSaver.saveAs(blob, 'table') // 下载文件 文件名
+    },
     painEcharts() {
       const month = this.ti_qian_table.map((item) => item.month)
       const save_interest = this.ti_qian_table.map(
@@ -540,7 +555,7 @@ export default {
             +list[0] +
             Math.floor((i + +list[1] - 2) / 12) +
             '-' +
-            ((i + +list[1] - 1) % 12 === 0 ? '12' : (i + +list[1] - 1) % 12)
+            ((i + +list[1] - 1) % 12 === 0 ? '12' : (i + +list[1] - 1) % 12) + '-18'
         })
       }
       return payDetail
