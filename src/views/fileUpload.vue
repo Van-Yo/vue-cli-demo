@@ -3,7 +3,7 @@
     <el-upload
       ref="upload"
       class="upload-demo"
-      action="https://jsonplaceholder.typicode.com/posts/"
+      action=""
       :on-preview="handlePreview"
       :on-remove="handleRemove"
       :on-change="handleChange"
@@ -18,10 +18,10 @@
     <el-input v-model="base64" />
 
     <el-button slot="trigger" size="small" type="primary" @click="base64ToFile()">base64转File</el-button>
-    <p />
-    <el-button slot="trigger" size="small" type="primary" @click="picLook()">查看图片</el-button>
-    <p />
+    <!-- <el-button slot="trigger" size="small" type="primary" @click="picLook()">查看图片</el-button> -->
     <el-button slot="trigger" size="small" type="primary" @click="base64ToBlob()">base64转Blob</el-button>
+    <el-button slot="trigger" size="small" type="primary" @click="base64ToArrayBuffer(base64)">base64转ArrayBuffer</el-button>
+    <el-button slot="trigger" size="small" type="primary" @click="arrayBufferToBase64()">ArrayBuffer转base64</el-button>
     <p>{{ blob }}</p>
     <el-button slot="trigger" size="small" type="primary" @click="blob2File(blob,'新文件')">Blob转File</el-button>
     <el-button slot="trigger" size="small" type="primary" @click="blob2ArrayBuffer(blob,'新文件')">Blob转ArrayBuffer</el-button>
@@ -48,7 +48,11 @@ export default {
   methods: {
     submitUpload() {
     //   this.$refs.upload.submit()
-      console.log(this.fileList)
+      console.log(this.file)
+      this.$message.success('请在跳转页面找到upload(file)方法，将this.file传入即可')
+      setTimeout(() => {
+        window.location.href = 'https://van-yo.github.io/2022/06/24/imgUrl2FileUpload/'
+      }, 3000)
     },
     handleRemove(file, fileList) {
       console.log(file, fileList)
@@ -61,25 +65,27 @@ export default {
       console.log(this.file)
     },
     // blob => base64,File是特殊的blob
-    blobToBase64(blob) {
+    blobToBase64(file) {
+      console.log(file)
       const reader = new FileReader()
       reader.addEventListener('load', () => {
         console.log(reader.result)
         this.base64 = reader.result
       })
-      reader.readAsDataURL(blob)
+      reader.readAsDataURL(file)
     },
     // base64 => File
     base64ImgtoFile(baseUrl, filename = '新建文本文档') {
       const arr = baseUrl.split(',')
       const mime = arr[0].match(/:(.*?);/)[1]
-      const suffix = mime.split('/')[0]
+      const suffix = mime.split('/')[1]
       const bstr = atob(arr[1])
       let n = bstr.length
       const u8arr = new Uint8Array(n)
       while (n--) {
         u8arr[n] = bstr.charCodeAt(n)
       }
+      console.log(mime, suffix)
       return new File([u8arr], `${filename}.${suffix}`, {
         type: mime
       })
@@ -97,7 +103,7 @@ export default {
     },
     base64ToFile() {
       this.fileFile = this.base64ImgtoFile(this.base64)
-      // console.log(file)
+      console.log(this.fileFile)
     },
     base64ToBlob() {
       const blob = this.dataURItoBlob(this.base64)
@@ -137,6 +143,36 @@ export default {
       link.setAttribute('download', 'test.jpg')
       document.body.appendChild(link)
       link.click()
+    },
+    // base64 => ArrayBuffer
+    base64ToArrayBuffer(base64) {
+      var binary_string = window.atob(base64)
+      var len = binary_string.length
+      var bytes = new Uint8Array(len)
+      for (var i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i)
+      }
+      console.log(bytes)
+      return bytes
+    },
+    // ArrayBuffer => base64
+    arrayBufferToBase64(data = [1, 2, 3]) {
+      var str = ''
+      for (var i = 0; i < data.length; i++) {
+        str += String.fromCharCode(data[i])
+      }
+      console.log(window
+        .btoa(str)
+        .split(/(.{75})/)
+        .join('\n')
+        .replace(/\n+/g, '')
+        .trim())
+      return window
+        .btoa(str)
+        .split(/(.{75})/)
+        .join('\n')
+        .replace(/\n+/g, '')
+        .trim()
     }
   }
 }
@@ -144,5 +180,6 @@ export default {
 
 <style lang="scss" scoped>
 .container-area{
+
 }
 </style>
