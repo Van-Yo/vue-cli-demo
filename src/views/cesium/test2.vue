@@ -33,7 +33,6 @@ export default {
         terrainProvider: Cesium.createWorldTerrain(), // 快速创建世界地形
         infoBox: false
       })
-
       // TDU_Key => https://console.tianditu.gov.cn/api/key
       var TDU_Key = 'fa9ccc712d703cfbcdda25fb0e164bc0'// 天地图申请的密钥
 
@@ -100,16 +99,81 @@ export default {
       } catch (error) {
         console.log(error)
       }
+      this.initPlaneViewer(viewer) // 初始化飞机
+      this.mouseClick(viewer) // 添加鼠标点击事件
+    },
+    // 鼠标点击事件
+    mouseClick(viewer) {
+      const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)
+      handler.setInputAction((event) => {
+        // // console.log(event.position)
+        // // 获取点击位置的屏幕坐标
+        // var screenPosition = event.position
+        // // 将屏幕坐标转换为地理坐标
+        // var ray = viewer.camera.getPickRay(screenPosition)
+        // var globePosition = viewer.scene.globe.pick(ray, viewer.scene)
+        // if (globePosition) {
+        // // 将地理坐标转换为经度、纬度、高度
+        //   var cartographic = Cesium.Cartographic.fromCartesian(globePosition)
+        //   var longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(6)
+        //   var latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(6)
+        //   var height = cartographic.height.toFixed(2)
 
-      this.initPlaneViewer(viewer)
+        //   console.log('点击位置的地理坐标：', longitude, latitude, height)
+        // } else {
+        //   console.log('未能获取地理坐标。')
+        // }
+
+        // 返回一个笛卡尔坐标
+        const position = viewer.scene.pickPosition(event.position)
+        // 如果有这个坐标
+        if (Cesium.defined(position)) {
+          console.log(position)
+          // 添加点击点
+          viewer.entities.add({
+            position: position,
+            point: {
+              color: Cesium.Color.BLUE,
+              pixelSize: 20
+            }
+          })
+          const res = this.GetWGS84FromDKR(position)
+          console.log('========================', res)
+          const options = {
+            aircraftLongitude: res.x,
+            aircraftLatitude: res.y,
+            aircraftAltitude: res.z,
+            gimbalPitchValue: -29.77056379217234,
+            gimbalYawValue: -141.52559171972544,
+            isShoot: this.generateRandomBit()
+          }
+          // 飞行
+          this.droneAnimator.flyTo(options)
+          // console.log(viewer.entities)
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+    },
+    GetWGS84FromDKR(coor) {
+      const cartographic = Cesium.Cartographic.fromCartesian(coor)
+      console.log(cartographic)
+      const x = Cesium.Math.toDegrees(cartographic.longitude)
+      const y = Cesium.Math.toDegrees(cartographic.latitude)
+      const z = cartographic.height
+      const wgs84 = {
+        x: x,
+        y: y,
+        z: z
+      }
+      return wgs84
     },
     initPlaneViewer(viewer) {
       // 实例化DroneFlightAnimator类
       const initPosition = Cesium.Cartesian3.fromDegrees(118.8, 31.9052, 28)
       this.droneAnimator = new DroneFlightAnimator({ viewer, initPosition }, (msg) => {
         // this.draw()
+        console.log('飞行一次结束，当前飞机位置为：' + msg)
       })
-      this.mockAirlineCommand()
+      // this.mockAirlineCommand()
     },
     generateRandomBit() {
       // 生成随机小数
@@ -143,11 +207,13 @@ export default {
           isShoot: this.generateRandomBit()
         }
         this.droneAnimator.flyTo(options)
-      }, 3000)
+      }, 5000)
       setTimeout(() => {
         clearInterval(this.timer)
-        this.delayGoHome()
-      }, 60000)
+        this.delayGoHome().then(() => {
+          console.log('返航成功')
+        })
+      }, 59999)
     },
     delayGoHome() {
       return new Promise((resolve, reject) => {

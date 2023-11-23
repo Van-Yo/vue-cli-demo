@@ -24,6 +24,7 @@ class DroneFlightAnimator {
     this.primitivesone = null;
     this.primitivestwo = null;
     this.spotLightCamera = null;
+    this.tickHandler = null; // 飞行任务
   }
   
   /**
@@ -37,31 +38,37 @@ class DroneFlightAnimator {
   */
   flyTo(options) {
     this.RemovePrimitives()
+    // 中断上一次飞行任务（取消上次任务继续画线）
+    this.tickHandler && this.viewer.clock.onTick.removeEventListener(this.tickHandler);
     let destination = Cesium.Cartesian3.fromDegrees(options.aircraftLongitude, options.aircraftLatitude, options.aircraftAltitude)
     const startLocation = this.droneEntity.position.getValue(Cesium.JulianDate.now());
     const startTime = Cesium.JulianDate.now();
 
     const distance = Cesium.Cartesian3.distance(startLocation, destination);
-    const duration = distance / 30; // 假设速度为每秒50米
+    const duration = distance / 50; // 假设速度为每秒5米
 
     const positions = [startLocation];
 
     this.flightPath = this.viewer.entities.add({
       polyline: {
         positions: new Cesium.CallbackProperty(() => {
+          // console.log('====================',positions);
           return positions;
         }, false),
         width: 3,
         material: Cesium.Color.RED
       },
     });
-    const tickHandler=()=>{
+    // 开始飞行，监听
+    // 通过计算当前飞行时间与总计飞行时间的比例t，判断飞机有没有飞行结束
+    this.tickHandler=()=>{
       const elapsedSeconds = Cesium.JulianDate.secondsDifference(
         Cesium.JulianDate.now(),
         startTime
       );
       const t = elapsedSeconds / duration;
       // console.log(t);
+      // 表示飞行结束
       if (t >= 1.0) {
         // console.log(t);
 
@@ -69,6 +76,7 @@ class DroneFlightAnimator {
         // 一定要更新一次t=1的时候飞机以及航线位置
         // 不然t=0.971523180793504时飞行即结束，这时候其实飞机还没有飞行到指定坐标点
         // t=0表示飞机在上个坐标点，t=1表示飞机在下一个坐标点，（0，1）表示飞机在两坐标之间
+        // 👇👇👇 手动给飞机设置飞行结束它应该在的位置
         const newPosition = Cesium.Cartesian3.lerp(
           startLocation,
           destination,
@@ -76,9 +84,9 @@ class DroneFlightAnimator {
           new Cesium.Cartesian3()
         );
         this.droneEntity.position.setValue(newPosition);
-        positions.push(newPosition);
+        positions.push(newPosition);  // 更新最新的所有位置集合，为了画线
 
-
+        // 画点
         this.drawPoint(this.droneEntity.position.getValue(destination))
         if(options.isShoot){
           this.SetLookCone({
@@ -88,21 +96,25 @@ class DroneFlightAnimator {
           })
         }
         
+        // 飞行结束的回调
         this.callback(this.droneEntity.position.getValue(destination))
-        this.viewer.clock.onTick.removeEventListener(tickHandler);
+        // 取消监听
+        this.viewer.clock.onTick.removeEventListener(this.tickHandler);
         return;
       }
       
+      // 飞行过程中，t从0-1变化，会返回飞机飞行的实时位置（应该在位置）
       const newPosition = Cesium.Cartesian3.lerp(
-        startLocation,
-        destination,
-        t,
+        startLocation,  // 飞机初始位置
+        destination,  // 飞机结束位置
+        t,  // 经过时间比例0-1
         new Cesium.Cartesian3()
       );
+      // 给飞机设置这个位置，飞机就动起来了
       this.droneEntity.position.setValue(newPosition);
-      positions.push(newPosition);
+      positions.push(newPosition);  // 更新最新的所有位置集合，为了画线
     }
-    this.viewer.clock.onTick.addEventListener(tickHandler);
+    this.viewer.clock.onTick.addEventListener(this.tickHandler);
   }
   drawPoint(position){
     this.viewer.entities.add({
@@ -134,8 +146,15 @@ class DroneFlightAnimator {
       this.spotLightCamera = null;
     }
   }
+  /**
+   * 拍照画四棱锥
+   * value:
+   * destination // Cesium.Cartesian3.fromDegrees(options.aircraftLongitude, options.aircraftLatitude, options.aircraftAltitude)
+   * gimbalPitchValue // 云台俯仰角
+   * gimbalYawValue // 云台偏航角
+  */
   SetLookCone(value) {
-
+    // 先把之前的云台拍摄视锥给删除
     this.RemovePrimitives()
 
     // setTimeout(() => {
@@ -210,6 +229,7 @@ class DroneFlightAnimator {
         }
     });
 
+    // 画视锥的棱边
     this.primitivesone = this.viewer.scene.primitives.add(new Cesium.Primitive({
         geometryInstances: instance,
         appearance: new Cesium.PerInstanceColorAppearance({
@@ -219,6 +239,7 @@ class DroneFlightAnimator {
         asynchronous: false
     }));
 
+    // 画视锥的面
     this.primitivestwo = this.viewer.scene.primitives.add(new Cesium.Primitive({
         geometryInstances: instanceOutline,
         appearance: new Cesium.PerInstanceColorAppearance({
