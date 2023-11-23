@@ -6,7 +6,13 @@
         <input id="visibilityCheckbox" type="checkbox" checked> 显示点云
       </label>
       <label>
-        <el-button type="primary" @click="flyToHome">回到起点</el-button>
+        <el-button icon="el-icon-location" type="primary" @click="addFlyDrove(viewer)">选点</el-button>
+      </label>
+      <label>
+        <el-button icon="el-icon-s-promotion" type="success" :disabled="!positionsList.length" @click="startFly">启航</el-button>
+      </label>
+      <label>
+        <el-button icon="el-icon-s-help" type="danger" @click="flyToHome">回巢</el-button>
       </label>
     </div>
   </div>
@@ -19,7 +25,10 @@ export default {
     return {
       droneAnimator: null,
       addList: [],
-      timer: null
+      timer: null,
+      positionsList: [],
+      positionIndex: 0,
+      viewer: null
     }
   },
   mounted() {
@@ -33,6 +42,7 @@ export default {
         terrainProvider: Cesium.createWorldTerrain(), // 快速创建世界地形
         infoBox: false
       })
+      this.viewer = viewer
       // TDU_Key => https://console.tianditu.gov.cn/api/key
       var TDU_Key = 'fa9ccc712d703cfbcdda25fb0e164bc0'// 天地图申请的密钥
 
@@ -100,10 +110,10 @@ export default {
         console.log(error)
       }
       this.initPlaneViewer(viewer) // 初始化飞机
-      this.mouseClick(viewer) // 添加鼠标点击事件
+      // this.addFlyDrove(viewer) // 添加鼠标点击事件
     },
-    // 鼠标点击事件
-    mouseClick(viewer) {
+    // 点击选点
+    addFlyDrove(viewer) {
       const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)
       handler.setInputAction((event) => {
         // // console.log(event.position)
@@ -148,7 +158,9 @@ export default {
             isShoot: this.generateRandomBit()
           }
           // 飞行
-          this.droneAnimator.flyTo(options)
+          this.positionsList.push(options)
+          console.log(this.positionsList)
+          // this.droneAnimator.flyTo(options)
           // console.log(viewer.entities)
         }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
@@ -172,6 +184,17 @@ export default {
       this.droneAnimator = new DroneFlightAnimator({ viewer, initPosition }, (msg) => {
         // this.draw()
         console.log('飞行一次结束，当前飞机位置为：' + msg)
+        this.positionIndex++
+        // console.log(this.positionIndex)
+        if (this.positionIndex < this.positionsList.length) {
+          // console.log('继续飞行', this.positionsList[this.positionIndex])
+          setTimeout(() => {
+            this.droneAnimator.flyTo(this.positionsList[this.positionIndex])
+          }, 3000)
+        } else {
+          this.positionIndex = 0
+          this.positionsList = []
+        }
       })
       // this.mockAirlineCommand()
     },
@@ -231,6 +254,11 @@ export default {
         aircraftAltitude: '28'
       }
       this.droneAnimator.flyTo(homeOptions)
+    },
+    // 开始飞行
+    startFly() {
+      this.positionIndex = 0
+      this.droneAnimator.flyTo(this.positionsList[0])
     }
   }
 }
@@ -244,6 +272,9 @@ export default {
     top: 10px;
     left: 10px;
     color: #fff;
+    & label{
+      margin: 0 5px;
+    }
   }
 }
 </style>

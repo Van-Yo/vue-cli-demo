@@ -37,9 +37,8 @@ class DroneFlightAnimator {
    * options.isShoot      // 是否为拍摄点
   */
   flyTo(options) {
-    this.RemovePrimitives()
-    // 中断上一次飞行任务（取消上次任务继续画线）
-    this.tickHandler && this.viewer.clock.onTick.removeEventListener(this.tickHandler);
+    // console.log(options);
+    this.RemovePrimitives()    
     let destination = Cesium.Cartesian3.fromDegrees(options.aircraftLongitude, options.aircraftLatitude, options.aircraftAltitude)
     const startLocation = this.droneEntity.position.getValue(Cesium.JulianDate.now());
     const startTime = Cesium.JulianDate.now();
@@ -48,6 +47,7 @@ class DroneFlightAnimator {
     const duration = distance / 50; // 假设速度为每秒5米
 
     const positions = [startLocation];
+    // console.log('00000000000000000',positions);
 
     this.flightPath = this.viewer.entities.add({
       polyline: {
@@ -62,6 +62,7 @@ class DroneFlightAnimator {
     // 开始飞行，监听
     // 通过计算当前飞行时间与总计飞行时间的比例t，判断飞机有没有飞行结束
     this.tickHandler=()=>{
+      // console.log('ttttttttttttttttttttttt');
       const elapsedSeconds = Cesium.JulianDate.secondsDifference(
         Cesium.JulianDate.now(),
         startTime
@@ -95,11 +96,11 @@ class DroneFlightAnimator {
             gimbalYawValue:options.gimbalYawValue
           })
         }
-        
+        // 中断上一次飞行任务（取消上次任务继续画线）,注意一定要放在callback前面
+        this.tickHandler && this.viewer.clock.onTick.removeEventListener(this.tickHandler);
+        this.tickHandler = null
         // 飞行结束的回调
         this.callback(this.droneEntity.position.getValue(destination))
-        // 取消监听
-        this.viewer.clock.onTick.removeEventListener(this.tickHandler);
         return;
       }
       
