@@ -1,19 +1,26 @@
 <template>
-  <div class="hello">
+  <div class="hello" :class="crosshair?'crosshair':''">
     <div id="cesiumContainer" />
     <div id="toolbar">
       <label>
         <input id="visibilityCheckbox" type="checkbox" checked> 显示点云
       </label>
       <label>
-        <el-button icon="el-icon-location" type="primary" @click="addFlyDrove(viewer)">选点</el-button>
+        <el-button icon="el-icon-location" type="primary" :disabled="ifAddDroveFlag" @click="addFlyDrove(viewer)">开始选点</el-button>
       </label>
       <label>
-        <el-button icon="el-icon-s-promotion" type="success" :disabled="!positionsList.length" @click="startFly">启航</el-button>
+        <el-button icon="el-icon-s-check" type="info" :disabled="!ifAddDroveFlag" @click="stopAddFlyDrove(viewer)">结束选点</el-button>
+      </label>
+      <label>
+        <el-button icon="el-icon-delete-location" type="warning" @click="clearAirLine">清除航线</el-button>
+      </label>
+      <label>
+        <el-button icon="el-icon-s-promotion" type="success" :disabled="!positionsList.length" @click="startFly">模拟航飞</el-button>
       </label>
       <label>
         <el-button icon="el-icon-s-help" type="danger" @click="flyToHome">回巢</el-button>
       </label>
+
     </div>
   </div>
 </template>
@@ -23,12 +30,33 @@ export default {
   name: 'HelloWorld',
   data() {
     return {
-      droneAnimator: null,
-      addList: [],
+      viewer: null,
+      droneAnimator: null, // 飞行器
+      tileset: null, // 点云
+      handler: null, // 点击动作
+      ifAddDroveFlag: false, // 是否正在选点
+      crosshair: false, // 鼠标指针是否是十字
       timer: null,
       positionsList: [],
       positionIndex: 0,
-      viewer: null
+      positions: [],
+      labelCount: 1,
+      /**
+       * ***********************以下viewer.entities.add***********************
+      */
+      whitePoint: null, // 底部白点
+      whitePoints: [], // 底部白点集合
+      bluePoint: null, // 高处航点
+      bluePoints: [], // 高处航点集合
+      whiteLine: null, // 底部白点——高处航点——连接线
+      whiteLines: [], // 底部白点——高处航点——连接线集合
+      blueLines: [], // 航点间连接线集合
+      distanceLabels: [], // 航点间连接线长度标识集合
+      heightLabels: [], // 航点高度标识集合
+      bluePointLabels: [] // 航点序号标识集合
+      /**
+       * ***********************以上viewer.entities.add***********************
+      */
     }
   },
   mounted() {
@@ -93,7 +121,7 @@ export default {
         const tileset = new Cesium.Cesium3DTileset({
           url: 'http://218.94.141.150:38010/pointCloud/tileset.json' // 文件的路径
         })
-        // console.log(tileset)
+        console.log({ tileset })
         var pointCloud = viewer.scene.primitives.add(tileset)
         pointCloud.show = true
         // 设置点的大小
@@ -101,6 +129,7 @@ export default {
           pointSize: 3
         })
         await viewer.zoomTo(tileset)
+        this.tileset = tileset
         // Add event listener to toggle visibility of point cloud
         var visibilityCheckbox = document.getElementById('visibilityCheckbox')
         visibilityCheckbox.addEventListener('change', function() {
@@ -114,56 +143,232 @@ export default {
     },
     // 点击选点
     addFlyDrove(viewer) {
-      const handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)
-      handler.setInputAction((event) => {
-        // // console.log(event.position)
-        // // 获取点击位置的屏幕坐标
-        // var screenPosition = event.position
-        // // 将屏幕坐标转换为地理坐标
-        // var ray = viewer.camera.getPickRay(screenPosition)
-        // var globePosition = viewer.scene.globe.pick(ray, viewer.scene)
-        // if (globePosition) {
-        // // 将地理坐标转换为经度、纬度、高度
-        //   var cartographic = Cesium.Cartographic.fromCartesian(globePosition)
-        //   var longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(6)
-        //   var latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(6)
-        //   var height = cartographic.height.toFixed(2)
-
-        //   console.log('点击位置的地理坐标：', longitude, latitude, height)
-        // } else {
-        //   console.log('未能获取地理坐标。')
-        // }
-
-        // 返回一个笛卡尔坐标
-        const position = viewer.scene.pickPosition(event.position)
-        // 如果有这个坐标
-        if (Cesium.defined(position)) {
-          console.log(position)
-          // 添加点击点
-          viewer.entities.add({
-            position: position,
+      // 鼠标箭头👉十字箭头
+      this.crosshair = true
+      this.ifAddDroveFlag = true
+      this.handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)
+      this.handler.setInputAction((event) => {
+        console.log(event.position)
+        // 获取点击位置的屏幕坐标
+        // screenPosition是二维坐标 It{x: 1085, y: 602}，表示从画布左上角开始计算的xy
+        var screenPosition = event.position
+        console.log('screenPosition', screenPosition)
+        // 将屏幕坐标转换为地理坐标
+        var ray = viewer.camera.getPickRay(screenPosition)
+        var whitePointCartesian = viewer.scene.globe.pick(ray, viewer.scene)
+        if (whitePointCartesian) {
+          // whitePointCartesian:🌏et{x: -2610898.800091982, y: 4749216.922361274, z: 3351596.5848676395}
+          console.log('whitePointCartesian', whitePointCartesian)
+          this.whitePoint = viewer.entities.add({
+            position: whitePointCartesian,
             point: {
-              color: Cesium.Color.BLUE,
-              pixelSize: 20
+              color: Cesium.Color.WHITE,
+              pixelSize: 5
             }
           })
-          const res = this.GetWGS84FromDKR(position)
+          this.whitePoints.push(this.whitePoint)
+          var bluePointPosition = Cesium.Cartographic.fromCartesian(whitePointCartesian)
+          // bluePointPosition Jr{longitude: 2.0734470141849206, latitude: 0.5568645155301508, height: 10.430285800919577}
+          console.log('bluePointPosition', bluePointPosition)
+          bluePointPosition.height += 50 // 100 meters above the white point
+          var bluePointCartesian = Cesium.Cartographic.toCartesian(bluePointPosition)
+          // bluePointCartesian 🌏et{x: -2610901.8784505245, y: 4749263.389039818, z: 3351624.1784977536}
+          console.log('bluePointCartesian', bluePointCartesian)
+          this.bluePoint = viewer.entities.add({
+            position: bluePointCartesian,
+            ellipse: {
+              semiMinorAxis: 2, // adjust the size of the ellipse
+              semiMajorAxis: 2,
+              material: Cesium.Color.WHITE.withAlpha(1),
+              height: bluePointPosition.height
+            }
+          })
+          this.bluePoints.push(this.bluePoint)
+          const res = this.GetWGS84FromDKR(bluePointCartesian)
+          var bluePointLabel = viewer.entities.add({
+            position: bluePointCartesian,
+            label: {
+              text: this.labelCount.toString(),
+              fillColor: Cesium.Color.WHITE,
+              font: '22px sans-serif',
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              outlineWidth: 2,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              pixelOffset: new Cesium.Cartesian2(0, -20)
+            }
+          })
+          this.bluePointLabels.push(bluePointLabel)
+          this.labelCount++
+          this.bluePoint.label = bluePointLabel
+
           console.log('========================', res)
           const options = {
             aircraftLongitude: res.x,
             aircraftLatitude: res.y,
             aircraftAltitude: res.z,
-            gimbalPitchValue: -29.77056379217234,
-            gimbalYawValue: -141.52559171972544,
-            isShoot: this.generateRandomBit()
+            gimbalPitchValue: 0.77056379217234,
+            gimbalYawValue: -90.52559171972544,
+            isShoot: true
           }
-          // 飞行
           this.positionsList.push(options)
-          console.log(this.positionsList)
-          // this.droneAnimator.flyTo(options)
-          // console.log(viewer.entities)
+          this.whiteLine = viewer.entities.add({
+            polyline: {
+              positions: [whitePointCartesian, bluePointCartesian],
+              width: 1,
+              material: new Cesium.PolylineDashMaterialProperty({
+                color: Cesium.Color.WHITE
+              })
+            }
+          })
+          this.whiteLines.push(this.whiteLine)
+          // Calculate midpoint between the clicked point and blue point
+          var midPoint = Cesium.Cartesian3.midpoint(whitePointCartesian, bluePointCartesian, new Cesium.Cartesian3())
+          var midPointCartographic = Cesium.Cartographic.fromCartesian(midPoint)
+          // midPointCartographic Jr{longitude: 2.073444744485913, latitude: 0.5568672917156762, height: 35.7290928316593}
+          console.log('midPointCartographic', midPointCartographic)
+
+          // Add label at the midpoint with the height value
+          const heightLabel = viewer.entities.add({
+            // position: Cesium.Cartesian3.fromRadians(midPointCartographic.longitude, midPointCartographic.latitude, midPointCartographic.height),
+            position: Cesium.Cartographic.toCartesian(midPointCartographic),
+            label: {
+              text: '50m',
+              fillColor: Cesium.Color.WHITE,
+              font: '14px sans-serif',
+              style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              outlineWidth: 2,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              pixelOffset: new Cesium.Cartesian2(15, 0)
+            }
+          })
+          this.heightLabels.push(heightLabel)
+          if (this.bluePoints.length > 1) {
+            // Create red line connecting the last two blue points
+            var redLine = viewer.entities.add({
+              polyline: {
+                positions: [this.bluePoints[this.bluePoints.length - 2].position.getValue(), this.bluePoint.position.getValue()],
+                width: 3,
+                material: Cesium.Color.RED
+              }
+            })
+            this.blueLines.push(redLine) // Add red line to the array
+            var distance = Cesium.Cartesian3.distance(this.bluePoints[this.bluePoints.length - 2].position.getValue(), this.bluePoint.position.getValue())
+            var distanceInMeters = distance.toFixed(0) + 'm'
+            var midPointB = Cesium.Cartesian3.midpoint(this.bluePoints[this.bluePoints.length - 2].position.getValue(), this.bluePoint.position.getValue(), new Cesium.Cartesian3())
+            var midPointCartographicB = Cesium.Cartographic.fromCartesian(midPointB)
+
+            // Add label at the midpoint with the distance value
+            var distanceLabel = viewer.entities.add({
+              position: Cesium.Cartesian3.fromRadians(midPointCartographicB.longitude, midPointCartographicB.latitude, midPointCartographicB.height),
+              label: {
+                text: distanceInMeters,
+                fillColor: Cesium.Color.WHITE,
+                font: '14px sans-serif',
+                style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                outlineWidth: 2,
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                pixelOffset: new Cesium.Cartesian2(0, -15)
+              }
+            })
+
+            this.distanceLabels.push(distanceLabel)
+          }
+          // 将地理坐标转换为经度、纬度、高度
+          var cartographic = Cesium.Cartographic.fromCartesian(whitePointCartesian)
+          var longitude = Cesium.Math.toDegrees(cartographic.longitude).toFixed(6)
+          var latitude = Cesium.Math.toDegrees(cartographic.latitude).toFixed(6)
+          var height = cartographic.height.toFixed(2)
+
+          console.log('点击位置的地理坐标：', longitude, latitude, height)
+        } else {
+          console.log('未能获取地理坐标。')
         }
+
+        // // 返回一个笛卡尔坐标
+        // const position = viewer.scene.pickPosition(event.position)
+        // console.log(position)
+        // // 如果有这个坐标
+        // if (Cesium.defined(position)) {
+        //   console.log(position)
+        //   // 添加点击点
+        //   // const pointEntity = viewer.entities.add({
+        //   //   position: position,
+        //   //   point: {
+        //   //     color: Cesium.Color.BLUE,
+        //   //     pixelSize: 20
+        //   //   }
+        //   // })
+        //   // const res = this.GetWGS84FromDKR(position)
+        //   // console.log('========================', res)
+        //   // const options = {
+        //   //   aircraftLongitude: res.x,
+        //   //   aircraftLatitude: res.y,
+        //   //   aircraftAltitude: res.z,
+        //   //   gimbalPitchValue: 0.77056379217234,
+        //   //   gimbalYawValue: -90.52559171972544,
+        //   //   isShoot: true
+        //   // }
+        //   // this.droneAnimator.SetLookCone({
+        //   //   destination: Cesium.Cartesian3.fromDegrees(options.aircraftLongitude, options.aircraftLatitude, options.aircraftAltitude),
+        //   //   gimbalPitchValue: options.gimbalPitchValue,
+        //   //   gimbalYawValue: options.gimbalYawValue
+        //   // })
+        //   // const timer = setInterval(() => {
+        //   //   options.aircraftLongitude += 0.000001
+        //   //   pointEntity.position = Cesium.Cartesian3.fromDegrees(options.aircraftLongitude, options.aircraftLatitude, options.aircraftAltitude)
+        //   //   this.droneAnimator.SetLookCone({
+        //   //     destination: Cesium.Cartesian3.fromDegrees(options.aircraftLongitude, options.aircraftLatitude, options.aircraftAltitude),
+        //   //     gimbalPitchValue: options.gimbalPitchValue,
+        //   //     gimbalYawValue: options.gimbalYawValue
+        //   //   })
+        //   // }, 100)
+        //   // 飞行
+        //   // this.positionsList.push(options)
+        //   // console.log(this.positionsList)
+        //   // this.droneAnimator.flyTo(options)
+        //   // console.log(viewer.entities)
+        // }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+    },
+    clearAirLine() {
+      this.bluePoints.forEach((point) => {
+        this.viewer.entities.remove(point)
+      })
+      this.whitePoints.forEach((point) => {
+        this.viewer.entities.remove(point)
+      })
+      this.whiteLines.forEach((line) => {
+        this.viewer.entities.remove(line)
+      })
+      this.blueLines.forEach((line) => {
+        this.viewer.entities.remove(line)
+      })
+      this.heightLabels.forEach((label) => {
+        this.viewer.entities.remove(label)
+      })
+      this.distanceLabels.forEach((label) => {
+        this.viewer.entities.remove(label)
+      })
+      this.bluePointLabels.forEach((label) => {
+        this.viewer.entities.remove(label)
+      })
+      this.bluePoints = []
+      this.whitePoints = []
+      this.whiteLines = []
+      this.blueLines = []
+      this.heightLabels = []
+      this.distanceLabels = []
+      this.positionsList = []
+      this.bluePointLabels = []
+      this.labelCount = 1
+      this.stopAddFlyDrove()
+    },
+    // 结束选点
+    stopAddFlyDrove() {
+      this.crosshair = false
+      this.ifAddDroveFlag = false
+      // 取消左键点击事件的监听
+      this.handler.removeInputAction(Cesium.ScreenSpaceEventType.LEFT_CLICK)
     },
     GetWGS84FromDKR(coor) {
       const cartographic = Cesium.Cartographic.fromCartesian(coor)
@@ -181,22 +386,51 @@ export default {
     initPlaneViewer(viewer) {
       // 实例化DroneFlightAnimator类
       const initPosition = Cesium.Cartesian3.fromDegrees(118.8, 31.9052, 28)
-      this.droneAnimator = new DroneFlightAnimator({ viewer, initPosition }, (msg) => {
+      this.droneAnimator = new DroneFlightAnimator({ viewer, initPosition }, (msg, positions) => {
         // this.draw()
         console.log('飞行一次结束，当前飞机位置为：' + msg)
+        console.log('飞行位置集合：', positions)
+        this.positions = positions
         this.positionIndex++
         // console.log(this.positionIndex)
         if (this.positionIndex < this.positionsList.length) {
           // console.log('继续飞行', this.positionsList[this.positionIndex])
           setTimeout(() => {
             this.droneAnimator.flyTo(this.positionsList[this.positionIndex])
-          }, 3000)
+          }, 1500)
         } else {
           this.positionIndex = 0
           this.positionsList = []
         }
       })
       // this.mockAirlineCommand()
+    },
+    checkLineIfOk() {
+      var intersections = []
+      console.log(this.positions)
+      for (var i = 0; i < this.positions.length - 1; i++) {
+        var start = this.positions[i]
+        var end = this.positions[i + 1]
+
+        // 创建射线
+        // var ray = new Cesium.Ray(start, Cesium.Cartesian3.subtract(end, start, new Cesium.Cartesian3()).normalize())
+        var direction = Cesium.Cartesian3.subtract(end, start, new Cesium.Cartesian3())
+        var normalizedDirection = Cesium.Cartesian3.normalize(direction, new Cesium.Cartesian3())
+        var ray = new Cesium.Ray(start, normalizedDirection)
+        console.log({ ray })
+        // 检查射线与点云模型的交点
+        // var intersection = this.tileset.rayIntersect(ray)
+        // if (intersection) {
+        //   intersections.push(intersection)
+        // }
+      }
+
+      // 如果有交点，航线与点云相交
+      if (intersections.length > 0) {
+        console.log('航线与点云相交，航线不可用')
+      } else {
+        console.log('航线未经过点云，航线可用')
+      }
     },
     generateRandomBit() {
       // 生成随机小数
@@ -257,6 +491,9 @@ export default {
     },
     // 开始飞行
     startFly() {
+      // this.blueLines.forEach((line) => {
+      //   this.viewer.entities.remove(line)
+      // })
       this.positionIndex = 0
       this.droneAnimator.flyTo(this.positionsList[0])
     }
@@ -276,5 +513,9 @@ export default {
       margin: 0 5px;
     }
   }
+
+}
+.crosshair{
+  cursor: crosshair;
 }
 </style>

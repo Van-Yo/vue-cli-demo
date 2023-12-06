@@ -100,7 +100,7 @@ class DroneFlightAnimator {
         this.tickHandler && this.viewer.clock.onTick.removeEventListener(this.tickHandler);
         this.tickHandler = null
         // 飞行结束的回调
-        this.callback(this.droneEntity.position.getValue(destination))
+        this.callback(this.droneEntity.position.getValue(destination),positions)
         return;
       }
       
@@ -117,7 +117,7 @@ class DroneFlightAnimator {
     }
     this.viewer.clock.onTick.addEventListener(this.tickHandler);
   }
-  drawPoint(position){
+  drawPoint(position){ 
     this.viewer.entities.add({
       // fromDegrees（经度，纬度，高度，椭球，结果）从以度为单位的经度和纬度值返回Cartesian3位置
       position,
@@ -239,6 +239,7 @@ class DroneFlightAnimator {
         }),
         asynchronous: false
     }));
+    // console.log(this.primitivesone);
 
     // 画视锥的面
     this.primitivestwo = this.viewer.scene.primitives.add(new Cesium.Primitive({
