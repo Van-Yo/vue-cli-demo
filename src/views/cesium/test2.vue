@@ -256,14 +256,14 @@ export default {
           this.heightLabels.push(heightLabel)
           if (this.bluePoints.length > 1) {
             // Create red line connecting the last two blue points
-            var redLine = viewer.entities.add({
+            var blueLine = viewer.entities.add({
               polyline: {
                 positions: [this.bluePoints[this.bluePoints.length - 2].position.getValue(), this.bluePoint.position.getValue()],
                 width: 3,
-                material: Cesium.Color.RED
+                material: Cesium.Color.BLUE
               }
             })
-            this.blueLines.push(redLine) // Add red line to the array
+            this.blueLines.push(blueLine) // Add red line to the array
             // et{x: -2610857.690867494, y: 4749287.953297833, z: 3351571.181484913}
             // console.log(this.bluePoints[this.bluePoints.length - 2].position.getValue())
             var positions = [
@@ -297,6 +297,7 @@ export default {
               // 检测点是否与线段相交
               var intersection = this.checkLineSegment2Sphere(positions[0], positions[1], point)
               if (intersection) {
+                blueLine.polyline.material = Cesium.Color.RED
                 intersections.push(intersection)
               }
             }
