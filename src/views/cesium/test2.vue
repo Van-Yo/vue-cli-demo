@@ -53,10 +53,11 @@ export default {
       blueLines: [], // 航点间连接线集合
       distanceLabels: [], // 航点间连接线长度标识集合
       heightLabels: [], // 航点高度标识集合
-      bluePointLabels: [] // 航点序号标识集合
+      bluePointLabels: [], // 航点序号标识集合
       /**
        * ***********************以上viewer.entities.add***********************
       */
+      tilesetPoints: [] // 点云所有点
     }
   },
   mounted() {
@@ -123,13 +124,24 @@ export default {
         })
         console.log({ tileset })
         var pointCloud = viewer.scene.primitives.add(tileset)
+        this.pointCloud = pointCloud
         pointCloud.show = true
         // 设置点的大小
         tileset.style = new Cesium.Cesium3DTileStyle({
-          pointSize: 3
+          pointSize: 5
         })
         await viewer.zoomTo(tileset)
         this.tileset = tileset
+        // 监听模型加载完成事件
+        tileset.readyPromise.then((tileset) => {
+          this.tilesetPoints = []
+
+          this.traverseAndCollectPoints(tileset._root)
+          // 输出所有点的位置信息
+          // console.log(this.tilesetPoints)
+        }).catch(function(error) {
+          console.log(error)
+        })
         // Add event listener to toggle visibility of point cloud
         var visibilityCheckbox = document.getElementById('visibilityCheckbox')
         visibilityCheckbox.addEventListener('change', function() {
@@ -170,7 +182,7 @@ export default {
           var bluePointPosition = Cesium.Cartographic.fromCartesian(whitePointCartesian)
           // bluePointPosition Jr{longitude: 2.0734470141849206, latitude: 0.5568645155301508, height: 10.430285800919577}
           console.log('bluePointPosition', bluePointPosition)
-          bluePointPosition.height += 50 // 100 meters above the white point
+          bluePointPosition.height += 20 // 100 meters above the white point
           var bluePointCartesian = Cesium.Cartographic.toCartesian(bluePointPosition)
           // bluePointCartesian 🌏et{x: -2610901.8784505245, y: 4749263.389039818, z: 3351624.1784977536}
           console.log('bluePointCartesian', bluePointCartesian)
@@ -232,7 +244,7 @@ export default {
             // position: Cesium.Cartesian3.fromRadians(midPointCartographic.longitude, midPointCartographic.latitude, midPointCartographic.height),
             position: Cesium.Cartographic.toCartesian(midPointCartographic),
             label: {
-              text: '50m',
+              text: '20m',
               fillColor: Cesium.Color.WHITE,
               font: '14px sans-serif',
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
@@ -252,6 +264,49 @@ export default {
               }
             })
             this.blueLines.push(redLine) // Add red line to the array
+            // et{x: -2610857.690867494, y: 4749287.953297833, z: 3351571.181484913}
+            // console.log(this.bluePoints[this.bluePoints.length - 2].position.getValue())
+            var positions = [
+              this.bluePoints[this.bluePoints.length - 2].position.getValue(),
+              this.bluePoint.position.getValue()
+            ]
+            const intersections = []
+
+            // 检测两点形成的射线会不会与点球相交❌❌❌❌❌❌❌❌❌
+            // const ray = new Cesium.Ray(positions[0], Cesium.Cartesian3.subtract(positions[1], positions[0], new Cesium.Cartesian3()))
+            // const ray = new Cesium.Ray(positions[0], Cesium.Cartesian3.normalize(Cesium.Cartesian3.subtract(positions[1], positions[0], new Cesium.Cartesian3()), new Cesium.Cartesian3()))
+            // 遍历模型中的每个点
+            // for (var i = 0; i < this.tilesetPoints.length; i++) {
+            //   var point = this.tilesetPoints[i]
+            //   // console.log(point)
+            //   // 检测点是否与射线相交
+            //   const intersection = Cesium.IntersectionTests.raySphere(ray, new Cesium.BoundingSphere(point, 4)) // 使用点的包围球来近似检测
+            //   // console.log({ intersection })
+            //   if (intersection) {
+            //     intersections.push(intersection)
+            //     // 在这里可以执行其他操作，比如更新航线的颜色或者执行其他逻辑
+            //     // line.polyline.material = Cesium.Color.GREEN
+            //     // return
+            //   }
+            // }
+
+            // 检测两点形成的线段会不会与点球相交🍃🍃🍃🍃🍃🍃🍃🍃🍃
+            // 遍历模型中的每个点
+            for (var i = 0; i < this.tilesetPoints.length; i++) {
+              var point = this.tilesetPoints[i]
+              // 检测点是否与线段相交
+              var intersection = this.checkLineSegment2Sphere(positions[0], positions[1], point)
+              if (intersection) {
+                intersections.push(intersection)
+              }
+            }
+            if (intersections.length) {
+              this.$message.error('航线不可用')
+              console.log('点与射线相交。', '相交点是：', intersections)
+            } else {
+              console.log('点与射线没有相交。')
+            }
+
             var distance = Cesium.Cartesian3.distance(this.bluePoints[this.bluePoints.length - 2].position.getValue(), this.bluePoint.position.getValue())
             var distanceInMeters = distance.toFixed(0) + 'm'
             var midPointB = Cesium.Cartesian3.midpoint(this.bluePoints[this.bluePoints.length - 2].position.getValue(), this.bluePoint.position.getValue(), new Cesium.Cartesian3())
@@ -496,6 +551,38 @@ export default {
       // })
       this.positionIndex = 0
       this.droneAnimator.flyTo(this.positionsList[0])
+    },
+    /**
+     * 递归查询点云所有点，注意这里是根据点云文件数据个性化字段去获取🌏et坐标
+     * tile : 点云_root
+    */
+    traverseAndCollectPoints(tile) {
+      // console.log('+++++++++++++++++++++')
+      var content = tile.boundingVolume
+      // console.log(content)
+      if (Cesium.defined(content) && Cesium.defined(content._boundingSphere)) {
+        var values = content._boundingSphere.center
+        this.tilesetPoints.push(values)
+      }
+      var children = tile.children
+      if (Cesium.defined(children)) {
+        for (var i = 0; i < children.length; ++i) {
+          this.traverseAndCollectPoints(children[i])
+        }
+      }
+    },
+    /**
+     * 检查线段与球体的交点
+     * lp0, lp1 : 线段两端坐标
+     * sp: 球体中心坐标
+     * radius: 球体半径
+    */
+    checkLineSegment2Sphere(lp0, lp1, sp, radius = 4) {
+      var intersection = Cesium.IntersectionTests.lineSegmentSphere(lp0, lp1, new Cesium.BoundingSphere(sp, radius))
+      if (intersection) {
+        // console.log('点与射线相交。', '相交点是：', intersection)
+        return intersection
+      }
     }
   }
 }
