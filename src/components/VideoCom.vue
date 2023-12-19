@@ -1,5 +1,5 @@
 <template>
-  <div v-loading="loading" class="video-area">
+  <div ref="videoArea" v-loading="loading" class="video-area">
     <video
       :id="'videoElement'+id"
       autoplay
@@ -7,6 +7,34 @@
       width="100%"
       height="100%"
     />
+    <div class="tools">
+      <div class="tool" @click="capture">
+        <el-tooltip class="item" effect="dark" content="截图" placement="right">
+          <i
+            class="el-icon-camera-solid"
+          />
+        </el-tooltip>
+      </div>
+      <div class="tool" @click="record">
+        <el-tooltip class="item" effect="dark" content="短视频录制" placement="right">
+          <i
+            class="el-icon-video-camera-solid"
+            :style="{color:(isRecording?'red':'#fff')}"
+          />
+        </el-tooltip>
+      </div>
+      <div class="tool" @click="stopVideo">
+        <el-tooltip class="item" effect="dark" content="关闭视频" placement="right">
+          <i
+            class="el-icon-switch-button"
+          />
+        </el-tooltip>
+      </div>
+    </div>
+    <div v-if="isRecording" class="isRecording">
+      <div class="round" />
+      <p style="color:#fff">录制中</p>
+    </div>
   </div>
 </template>
 
@@ -27,7 +55,10 @@ export default {
       lastDecodedFrame: 0,
       timer: null,
       reFlvRevertFlag: '',
-      loading: false
+      loading: false,
+      mediaRecorder: null,
+      recordedChunks: [],
+      isRecording: false
     }
   },
   watch: {
@@ -42,9 +73,13 @@ export default {
   destroyed() {
     this.closeFlv()
   },
+  mounted() {
+    this.listenFullscreen()
+  },
   methods: {
     // 手动开启直播
     flvRevert(url) {
+      this.closeFlv()
       this.loading = true
       if (this.listenFlvFramesTimer) {
         clearInterval(this.listenFlvFramesTimer)
@@ -209,15 +244,127 @@ export default {
         this.timer && clearInterval(this.timer)
         this.listenFlvFramesTimer && clearInterval(this.listenFlvFramesTimer)
       }
+    },
+    listenFullscreen() {
+      const div = this.$refs['videoArea']
+      div.addEventListener('dblclick', function() {
+        console.log('111111111111111')
+        if (!document.fullscreenElement) {
+          if (div.requestFullscreen) {
+            div.requestFullscreen()
+          } else if (div.webkitRequestFullscreen) { /* Safari */
+            div.webkitRequestFullscreen()
+          } else if (div.msRequestFullscreen) { /* IE11 */
+            div.msRequestFullscreen()
+          }
+
+          div.classList.add('fullscreen')
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen()
+          } else if (document.webkitExitFullscreen) { /* Safari */
+            document.webkitExitFullscreen()
+          } else if (document.msExitFullscreen) { /* IE11 */
+            document.msExitFullscreen()
+          }
+
+          div.classList.remove('fullscreen')
+        }
+      })
+    },
+    // 视频截图
+    capture() {
+      // console.log('截图')
+      const videoPlayer = document.getElementById(
+        'videoElement' + this.id
+      )
+      // 获取视频当前时间
+      const currentTime = videoPlayer.currentTime
+
+      // 创建一个 Canvas 元素
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+
+      // 将 Canvas 尺寸设置为视频的实际宽高
+      canvas.width = videoPlayer.videoWidth
+      canvas.height = videoPlayer.videoHeight
+
+      // 在 Canvas 上绘制视频当前帧
+      ctx.drawImage(videoPlayer, 0, 0, canvas.width, canvas.height)
+
+      // 将 Canvas 转换为图像数据
+      const dataURL = canvas.toDataURL('image/png')
+
+      // 创建一个下载链接并将图像保存为文件
+      const link = document.createElement('a')
+      link.href = dataURL
+      link.download = `screenshot_${currentTime}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    },
+    // 开始和结束录制短视频
+    record() {
+      if (this.mediaRecorder && this.isRecording) {
+        this.mediaRecorder.stop()
+        this.isRecording = false
+      } else {
+        const videoPlayer = document.getElementById(
+          'videoElement' + this.id
+        )
+        this.recordedChunks = []
+        this.isRecording = true
+
+        const stream = videoPlayer.captureStream()
+
+        this.mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' })
+
+        this.mediaRecorder.ondataavailable = event => {
+          if (event.data.size > 0) {
+            this.recordedChunks.push(event.data)
+          }
+        }
+
+        this.mediaRecorder.onstop = () => {
+          const videoBlob = new Blob(this.recordedChunks, { type: 'video/webm' })
+
+          // 创建一个临时链接并模拟点击下载视频
+          const link = document.createElement('a')
+          link.href = URL.createObjectURL(videoBlob)
+          link.download = 'recorded_video.mp4'
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        }
+
+        this.mediaRecorder.start()
+      }
+    },
+    // 关闭视频
+    stopVideo() {
+      this.closeFlv()
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
+/* 定义闪烁的动画效果 */
+@keyframes blink-animation {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 .video-area{
     width: 100%;
     height: 100%;
+    position: relative;
     video{
       background: #000;
     }
@@ -225,6 +372,46 @@ export default {
       background-color: rgba(0, 0, 0, 0);
       .el-loading-spinner .path {
         stroke: #01e5ff;
+      }
+    }
+    .tools{
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      position: absolute;
+      width: 10%;
+      height: 50%;
+      right: 0;
+      top: 25%;
+      background: rgba(0,0,0,0.2);
+      border-radius:20px;
+      opacity: 0;
+      transition: all 0.3s ease-in-out; /* 过渡效果 */
+      color: #fff;
+      font-size: 40px;
+      .tool{
+        cursor: pointer;
+        margin: 10px 0;
+      }
+    }
+    &:hover .tools{
+      right: 3%;
+      opacity: 1;
+    }
+    .isRecording{
+      position: absolute;
+      right: 3%;
+      top: 3%;
+      display: flex;
+      align-items: center;
+      .round{
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: red;
+        margin-right: 5px;
+        animation: blink-animation 1s infinite;
       }
     }
 }
