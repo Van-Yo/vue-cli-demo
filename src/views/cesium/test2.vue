@@ -26,7 +26,9 @@
           @click="showLine1"
         >航线1</el-button>
       </label>
-
+      <label>
+        <el-button icon="el-icon-location" type="primary" @click="pointChangeTest(viewer)">拖动测试</el-button>
+      </label>
     </div>
   </div>
 </template>
@@ -126,7 +128,11 @@ export default {
           latitude: '31.90595033374985',
           altitude: '35.71446849499091'
         }
-      ]
+      ],
+      startMousePosition: {
+        x: null,
+        y: null
+      }
     }
   },
   mounted() {
@@ -141,6 +147,7 @@ export default {
         infoBox: false
       })
       this.viewer = viewer
+      // viewer.scene.screenSpaceCameraController.enableRotate = false
       // TDU_Key => https://console.tianditu.gov.cn/api/key
       var TDU_Key = 'fa9ccc712d703cfbcdda25fb0e164bc0'// 天地图申请的密钥
 
@@ -221,6 +228,145 @@ export default {
       }
       this.initPlaneViewer(viewer) // 初始化飞机
       // this.addFlyDrove(viewer) // 添加鼠标点击事件
+    },
+    pointChangeTest(viewer) {
+      this.$notify.info({
+        title: '操作',
+        message: '请先点击开始选点，选完点后点击结束选点，然后拖动航点',
+        duration: 0
+      })
+      this.leftDownFlag = false // 鼠标左键是否按下
+      this.pickedEntity = null // 被选中的Entity
+      viewer.screenSpaceEventHandler.setInputAction((e) => {
+        this.leftDownAction(e, viewer)
+      }, Cesium.ScreenSpaceEventType.LEFT_DOWN)
+
+      viewer.screenSpaceEventHandler.setInputAction((e) => {
+        this.mouseMoveAction(e, viewer)
+      }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
+
+      viewer.screenSpaceEventHandler.setInputAction((e) => {
+        this.leftUpAction(e, viewer)
+      }, Cesium.ScreenSpaceEventType.LEFT_UP)
+    },
+    // 拖拽模型-左键按下
+    leftDownAction(e, viewer) {
+      this.leftDownFlag = true
+      const picked = viewer.scene.pick(e.position)
+      if (picked) {
+        // console.log(picked)
+        document.body.style.cursor = 'move'
+        this.pickedEntity = Cesium.defaultValue(picked.id, picked.primitive.id)
+        // console.log(this.pickedEntity, '0000000000000000')
+        // console.log(this.bluePoints[0].position.getValue())
+        this.startMousePosition.x = e.position.x
+        this.startMousePosition.y = e.position.y
+        // if (this.pickedEntity instanceof Cesium.Entity && this.pickedEntity.model) {
+        //   console.log(111111111111)
+        //   // 锁定相机
+        //   viewer.scene.screenSpaceCameraController.enableRotate = false
+        // }
+        viewer.scene.screenSpaceCameraController.enableRotate = false
+      }
+    },
+    // 拖拽模型-鼠标移动
+    mouseMoveAction(e, viewer) {
+      if (this.leftDownFlag && this.pickedEntity) {
+        var scene = viewer.scene
+        // console.log(e.endPosition)
+        var deltaX = e.endPosition.x - this.startMousePosition.x
+        var deltaY = e.endPosition.y - this.startMousePosition.y
+        // console.log({ deltaX, deltaY })
+
+        // var scene = viewer.scene
+        var canvasPosition = new Cesium.Cartesian2()
+        var canvasCoordinates = scene.cartesianToCanvasCoordinates(this.whitePoints[0].position.getValue(), canvasPosition)
+        const whitePointNewX = canvasCoordinates.x + deltaX
+        const whitePointNewY = canvasCoordinates.y + deltaY
+        // console.log(canvasCoordinates)
+
+        const ray = viewer.camera.getPickRay({ x: whitePointNewX, y: whitePointNewY })
+        const cartesian = viewer.scene.globe.pick(ray, viewer.scene)
+        // const cartesian = viewer.scene.camera.pickEllipsoid(
+        //   e.endPosition,
+        //   viewer.scene.globe.ellipsoid
+        // )
+        // console.log(cartesian)
+        // console.log(this.GetWGS84FromDKR(cartesian))
+        this.whitePoints[0].position = cartesian
+        this.startMousePosition.x = e.endPosition.x
+        this.startMousePosition.y = e.endPosition.y
+        var bluePointPosition = Cesium.Cartographic.fromCartesian(cartesian)
+        // bluePointPosition Jr{longitude: 2.0734470141849206, latitude: 0.5568645155301508, height: 10.430285800919577}
+        // console.log('bluePointPosition', bluePointPosition)
+        bluePointPosition.height += 20 // 100 meters above the white point
+        var bluePointCartesian = Cesium.Cartographic.toCartesian(bluePointPosition)
+        this.bluePoints[0].position = bluePointCartesian
+        this.bluePointLabels[0].position = bluePointCartesian
+        this.whiteLines[0].polyline.positions = new Cesium.CallbackProperty(function(time, result) {
+          return [cartesian, bluePointCartesian]
+        }, false)
+        var midPoint = this.computeMidPointCartesian(cartesian, bluePointCartesian)
+        this.heightLabels[0].position = midPoint
+        // console.log(this.blueLines[0].polyline.positions)
+        // console.log(this.bluePoints[1].position.getValue())
+        const nextPointCartesian = this.bluePoints[1].position.getValue()
+        this.blueLines[0].polyline.positions = new Cesium.CallbackProperty(function(time, result) {
+          return [bluePointCartesian, nextPointCartesian]
+        }, false)
+
+        var distance = Cesium.Cartesian3.distance(bluePointCartesian, nextPointCartesian)
+        var distanceInMeters = distance.toFixed(0) + 'm'
+        // 计算两个笛卡尔坐标的中心坐标
+        var midPointB = this.computeMidPointCartesian(bluePointCartesian, nextPointCartesian)
+        // 标注距离标识
+        this.distanceLabels[0].position = midPointB
+        this.distanceLabels[0].label.text = distanceInMeters
+      }
+    },
+    // 拖拽模型-左键抬起
+    leftUpAction(e, viewer) {
+      document.body.style.cursor = 'default'
+      this.leftDownFlag = false
+      this.pickedEntity = null
+      // 解除相机锁定
+      viewer.scene.screenSpaceCameraController.enableRotate = true
+      const intersections = []
+      for (var i = 0; i < this.tilesetPoints.length; i++) {
+        var point = this.tilesetPoints[i]
+        // 检测点是否与线段相交
+        // console.log(this.bluePoints[0].position.getValue())
+        const intersection = this.checkLineSegment2Sphere(this.bluePoints[0].position.getValue(), this.bluePoints[1].position.getValue(), point)
+        // console.log({ intersection })
+        if (intersection) {
+          this.blueLines[0].polyline.material = Cesium.Color.RED
+          intersections.push(intersection)
+          break
+        }
+      }
+      if (!intersections.length) {
+        this.blueLines[0].polyline.material = Cesium.Color.BLUE
+      }
+    },
+    getMousePosition(e) {
+      return new Cesium.Cartesian2(
+        e.position.x,
+        e.position.y
+      )
+    },
+    createPoint(position) {
+      var entity = this.viewer.entities.add({
+        position: position,
+        point: {
+          pixelSize: 10,
+          color: Cesium.Color.YELLOW,
+          outlineColor: Cesium.Color.BLACK,
+          outlineWidth: 2,
+          disableDepthTestDistance: Number.POSITIVE_INFINITY
+        }
+      })
+
+      return entity
     },
     // 点击选点
     addFlyDrove(viewer) {
@@ -605,11 +751,15 @@ export default {
       // console.log({ altitude })
       const bluePoint = this.viewer.entities.add({
         position: bluePointCartesian,
-        ellipse: {
-          semiMinorAxis: 2, // adjust the size of the ellipse
-          semiMajorAxis: 2,
-          material: Cesium.Color.WHITE.withAlpha(1),
-          height: altitude
+        // ellipse: {
+        //   semiMinorAxis: 2, // adjust the size of the ellipse
+        //   semiMajorAxis: 2,
+        //   material: Cesium.Color.WHITE.withAlpha(1),
+        //   height: altitude
+        // }
+        point: {
+          color: Cesium.Color.WHITE,
+          pixelSize: 15
         }
       })
       return bluePoint
