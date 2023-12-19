@@ -33,12 +33,14 @@
     </div>
     <div v-if="isRecording" class="isRecording">
       <div class="round" />
-      <p style="color:#fff">录制中</p>
+      <p style="color:#fff;background:rgba(0,0,0,0.2);padding:3px 7px;border-radius:5px">录制中</p>
     </div>
   </div>
 </template>
 
 <script>
+import RecordRTC from 'recordrtc'
+import { getSeekableBlob } from '@/utils/ebml.util.js'
 export default {
   components: {},
   props: {
@@ -58,7 +60,8 @@ export default {
       loading: false,
       mediaRecorder: null,
       recordedChunks: [],
-      isRecording: false
+      isRecording: false,
+      recorder: null
     }
   },
   watch: {
@@ -305,40 +308,74 @@ export default {
     },
     // 开始和结束录制短视频
     record() {
-      if (this.mediaRecorder && this.isRecording) {
-        this.mediaRecorder.stop()
+      if (this.recorder && this.isRecording) {
+        // this.mediaRecorder.stop()
+        // this.isRecording = false
+        // 停止录制
+        this.recorder.stopRecording(() => {
+          this.download()
+        })
         this.isRecording = false
       } else {
         const videoPlayer = document.getElementById(
           'videoElement' + this.id
         )
-        this.recordedChunks = []
+        // this.recordedChunks = []
         this.isRecording = true
 
+        // const stream = videoPlayer.captureStream()
+
+        // this.mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' })
+
+        // this.mediaRecorder.ondataavailable = event => {
+        //   if (event.data.size > 0) {
+        //     this.recordedChunks.push(event.data)
+        //   }
+        // }
+
+        // this.mediaRecorder.onstop = () => {
+        //   const videoBlob = new Blob(this.recordedChunks, { type: 'video/webm' })
+
+        //   // 创建一个临时链接并模拟点击下载视频
+        //   const link = document.createElement('a')
+        //   link.href = URL.createObjectURL(videoBlob)
+        //   link.download = 'recorded_video.mp4'
+        //   document.body.appendChild(link)
+        //   link.click()
+        //   document.body.removeChild(link)
+        // }
+
+        // this.mediaRecorder.start()
+        // 获取视频流
         const stream = videoPlayer.captureStream()
 
-        this.mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' })
+        // 将视频流注入到recordRTC
+        this.recorder = RecordRTC(stream, {
+          type: 'video'
+        })
 
-        this.mediaRecorder.ondataavailable = event => {
-          if (event.data.size > 0) {
-            this.recordedChunks.push(event.data)
-          }
-        }
-
-        this.mediaRecorder.onstop = () => {
-          const videoBlob = new Blob(this.recordedChunks, { type: 'video/webm' })
-
-          // 创建一个临时链接并模拟点击下载视频
+        // 开始录制
+        this.recorder.startRecording()
+      }
+    },
+    // 结束后自动保存本地
+    download() {
+      getSeekableBlob(
+        this.recorder.getBlob(),
+        this.mediaType,
+        function(seekableBlob) {
+          const url = window.URL.createObjectURL(seekableBlob)
           const link = document.createElement('a')
-          link.href = URL.createObjectURL(videoBlob)
-          link.download = 'recorded_video.mp4'
+          link.style.display = 'none'
+          link.href = url
+          // 拼接文件类型
+          const fileName = Date.now() + '.mp4'
+          link.setAttribute('download', fileName)
           document.body.appendChild(link)
           link.click()
           document.body.removeChild(link)
         }
-
-        this.mediaRecorder.start()
-      }
+      )
     },
     // 关闭视频
     stopVideo() {
