@@ -7,7 +7,16 @@
       width="100%"
       height="100%"
     />
-    <div class="tools">
+    <canvas
+      v-if="canvasShowFlag"
+      id="myCanvas"
+      ref="myCanvas"
+      class="video-model"
+      @mousedown="mousedown"
+      @mouseup="mouseup"
+      @mousemove="mousemove"
+    />
+    <div ref="tools" class="tools">
       <div class="tool" @click="capture">
         <el-tooltip class="item" effect="dark" content="截图" placement="right">
           <i
@@ -16,10 +25,18 @@
         </el-tooltip>
       </div>
       <div class="tool" @click="record">
-        <el-tooltip class="item" effect="dark" content="短视频录制" placement="right">
+        <el-tooltip class="item" effect="dark" :content="isRecording?'结束录制':'短视频录制'" placement="right">
           <i
             class="el-icon-video-camera-solid"
             :style="{color:(isRecording?'red':'#fff')}"
+          />
+        </el-tooltip>
+      </div>
+      <div class="tool" @click="areaControl">
+        <el-tooltip class="item" effect="dark" :content="canvasShowFlag?'关闭3D控球':'3D控球'" placement="right">
+          <i
+            class="el-icon-s-help"
+            :style="{color:(canvasShowFlag?'red':'#fff')}"
           />
         </el-tooltip>
       </div>
@@ -35,12 +52,17 @@
       <div class="round" />
       <p style="color:#fff;background:rgba(0,0,0,0.2);padding:3px 7px;border-radius:5px">录制中</p>
     </div>
+    <div v-if="canvasShowFlag" class="isRecording">
+      <div class="round" />
+      <p style="color:#fff;background:rgba(0,0,0,0.2);padding:3px 7px;border-radius:5px">3D控球中</p>
+    </div>
   </div>
 </template>
 
 <script>
 import RecordRTC from 'recordrtc'
 import { getSeekableBlob } from '@/utils/ebml.util.js'
+import elementResizeDetectorMaker from 'element-resize-detector'
 export default {
   components: {},
   props: {
@@ -61,7 +83,11 @@ export default {
       mediaRecorder: null,
       recordedChunks: [],
       isRecording: false,
-      recorder: null
+      recorder: null,
+      canvasShowFlag: false,
+      mouseDownFlag: false,
+      startX: '',
+      startY: ''
     }
   },
   watch: {
@@ -78,6 +104,7 @@ export default {
   },
   mounted() {
     this.listenFullscreen()
+    this.resizeCanvas()
   },
   methods: {
     // 手动开启直播
@@ -305,6 +332,7 @@ export default {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
+      this.$message.success('截图成功')
     },
     // 开始和结束录制短视频
     record() {
@@ -316,6 +344,7 @@ export default {
           this.download()
         })
         this.isRecording = false
+        this.$message.success('录制成功')
       } else {
         const videoPlayer = document.getElementById(
           'videoElement' + this.id
@@ -356,6 +385,7 @@ export default {
 
         // 开始录制
         this.recorder.startRecording()
+        this.$message.success('开始录制')
       }
     },
     // 结束后自动保存本地
@@ -380,6 +410,90 @@ export default {
     // 关闭视频
     stopVideo() {
       this.closeFlv()
+      this.$message.success('已关闭视频')
+    },
+    /**
+     * 鼠标落下
+     */
+    mousedown(e) {
+      this.$refs.tools.style.zIndex = 2000
+      // console.log('鼠标落下');
+      this.mouseDownFlag = true
+      this.startX = e.offsetX // 鼠标落下时的X
+      this.startY = e.offsetY // 鼠标落下时的Y
+      console.log(this.startX, this.startY)
+    },
+    /**
+     * 鼠标移动
+     */
+    mousemove(e) {
+      if (this.mouseDownFlag) {
+        this.drawRect(e)
+      }
+    },
+    /**
+     * 鼠标抬起
+     */
+    mouseup(e) {
+      const canvas = this.$refs.myCanvas
+      var ctx = canvas.getContext('2d')
+      this.mouseDownFlag = false
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      this.$refs.tools.style.zIndex = 2200
+      if (this.startX !== e.offsetX && this.startY !== e.offsetY) {
+        console.log('拖动了')
+        console.log(this.startX, this.startY, e.offsetX, e.offsetY)
+      }
+    },
+    /**
+     * canvas绘矩形
+     */
+    drawRect(e) {
+      if (this.mouseDownFlag) {
+        const canvas = this.$refs.myCanvas
+        var ctx = canvas.getContext('2d')
+        const x = this.startX
+        const y = this.startY
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+        ctx.beginPath()
+
+        // 设置线条颜色，必须放在绘制之前
+        ctx.strokeStyle = 'red'
+        // 线宽设置，必须放在绘制之前
+        ctx.lineWidth = 4
+
+        ctx.strokeRect(x, y, e.offsetX - x, e.offsetY - y)
+      }
+    },
+    // 开启3D控球
+    areaControl() {
+      if (!this.canvasShowFlag) {
+        this.canvasShowFlag = true
+        this.$nextTick(() => {
+          this.getVideoWidthHeight('myCanvas')
+        })
+        this.$message.success('已开启3D控球，请在视频中画框')
+      } else {
+        this.canvasShowFlag = false
+      }
+    },
+    resizeCanvas() {
+      // 监听视频位div大小，动态调整canvas大小
+      const domAresize = elementResizeDetectorMaker()
+      domAresize.listenTo(this.$refs.videoArea, element => {
+        if (this.canvasShowFlag) {
+          this.getVideoWidthHeight('myCanvas')
+        }
+      })
+    },
+    /**
+     * 获取视频容器的宽高,并设置canvas宽高
+     */
+    getVideoWidthHeight(canvasId) {
+      const node = this.$refs.videoArea
+      const canvas = this.$refs[canvasId]
+      canvas.width = node.clientWidth
+      canvas.height = node.clientHeight
     }
   }
 }
@@ -411,6 +525,15 @@ export default {
         stroke: #01e5ff;
       }
     }
+    .video-model {
+      position: absolute;
+      left: 0;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2001;
+      background: rgba(0, 0, 0, 0.2);
+    }
     .tools{
       display: flex;
       justify-content: center;
@@ -427,6 +550,7 @@ export default {
       transition: all 0.3s ease-in-out; /* 过渡效果 */
       color: #fff;
       font-size: 40px;
+      z-index: 2200;
       .tool{
         cursor: pointer;
         margin: 10px 0;
