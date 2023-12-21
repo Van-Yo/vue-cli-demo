@@ -98,7 +98,7 @@
             <el-button
               v-if="subscribeSuccess"
               :disabled="!client.connected"
-              type="success"
+              type="danger"
               size="small"
               class="subscribe-btn"
               style="margin-left:20px"
@@ -241,7 +241,14 @@ export default {
           })
           this.client.on('message', (topic, message) => {
             this.receiveNews = this.receiveNews.concat(message)
-            console.log(`Received message ${message} from topic ${topic}`)
+            const note = JSON.parse(message)
+            // console.log(note.deviceId)
+            // console.log(`Received message ${message} from topic ${topic}`)
+            this.$notify({
+              title: '来消息啦',
+              dangerouslyUseHTMLString: true,
+              message: `<strong>topic:<i style="color:teal">${topic}</i></strong><br><strong>设备号:<i style="color:teal">${note.deviceId}</i></strong>`
+            })
           })
         }
       } catch (error) {
