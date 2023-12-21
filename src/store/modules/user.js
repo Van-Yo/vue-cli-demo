@@ -105,6 +105,7 @@ const user = {
               { path: '/offLineMap', name: 'offLineMap', component: 'offLineMap' },
               { path: '/canvas', name: 'canvas', component: 'canvas' },
               { path: '/editTable', name: 'editTable', component: 'editTable' },
+              { path: '/mqtt', name: 'mqtt', component: 'mqtt' },
               {
                 path: '*',
                 redirect: '/404'

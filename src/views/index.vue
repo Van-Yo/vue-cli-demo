@@ -17,6 +17,7 @@
     <div class="buttonClass them-btn-primary" @click="goto('offLineMap')">百度离线地图</div>
     <div class="buttonClass them-btn-primary" @click="goto('canvas')">CANVAS</div>
     <div class="buttonClass them-btn-primary" @click="goto('editTable')">editTable</div>
+    <div class="buttonClass them-btn-primary" @click="goto('mqtt')">mqtt</div>
     <Dialog :dialog="dialog" @reloadtable="handleQuery" />
   </div>
 </template>
@@ -96,6 +97,8 @@ export default {
 <style lang="scss" scoped>
 .container-area {
   display: flex;
+  flex-wrap: wrap;
+  align-content:flex-start;
     .buttonClass {
         font-size: 15px;
         font-family: Arial;
@@ -118,6 +121,7 @@ export default {
         cursor: pointer;
         margin-right: 10px;
         transition: all 3s ease;
+        margin-bottom: 15px;
     }
 
     .buttonClass:hover {
