@@ -17,14 +17,14 @@
       @mousemove="mousemove"
     />
     <div ref="tools" class="tools">
-      <div class="tool" @click="capture">
+      <div v-if="showTools.showCaptureTool" class="tool" @click="capture">
         <el-tooltip class="item" effect="dark" content="截图" placement="right">
           <i
             class="el-icon-camera-solid"
           />
         </el-tooltip>
       </div>
-      <div class="tool" @click="record">
+      <div v-if="showTools.showRewordTool" class="tool" @click="record">
         <el-tooltip class="item" effect="dark" :content="isRecording?'结束录制':'短视频录制'" placement="right">
           <i
             class="el-icon-video-camera-solid"
@@ -32,7 +32,7 @@
           />
         </el-tooltip>
       </div>
-      <div class="tool" @click="areaControl">
+      <div v-if="showTools.show3DcontrolTool" class="tool" @click="areaControl">
         <el-tooltip class="item" effect="dark" :content="canvasShowFlag?'关闭3D控球':'3D控球'" placement="right">
           <i
             class="el-icon-s-help"
@@ -69,6 +69,16 @@ export default {
     videoUrl: {
       type: String,
       default: ''
+    },
+    showTools: {
+      type: Object,
+      default: () => {
+        return {
+          showCaptureTool: true,
+          showRewordTool: true,
+          show3DcontrolTool: true
+        }
+      }
     }
   },
   data() {

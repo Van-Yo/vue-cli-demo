@@ -1,16 +1,19 @@
 <template>
   <div class="container-area">
-    <div>
-      <el-input v-model="inputUrl" @change="inputChange" />
-    </div>
-    <el-button type="primary" @click="play">播放视频</el-button>
-    <!-- <el-button type="primary" @click="close">关闭视频</el-button> -->
-    <!-- <el-button type="primary" :disabled="canvasShowFlag" @click="openCtx('rect')">开启画方框</el-button>
+    <div style="display:flex">
+      <div style="flex:1;padding:7.5px">
+        <div style="display:flex;margin-bottom:15px">
+          <el-input v-model="inputUrl" @change="inputChange" />
+          <el-button type="primary" style="margin-left:15px" @click="play">播放视频</el-button>
+        </div>
+
+        <!-- <el-button type="primary" @click="close">关闭视频</el-button> -->
+        <!-- <el-button type="primary" :disabled="canvasShowFlag" @click="openCtx('rect')">开启画方框</el-button>
     <el-button type="primary" :disabled="!canvasShowFlag" @click="closeCtx">关闭绘画</el-button>
     <el-button type="primary" :disabled="canvasShowFlag" @click="openCtx('line')">开启画直线</el-button> -->
-    <div id="main" ref="videoElement" class="video-element">
-      <VideoCom ref="videoCom" :video-url="videoUrl" />
-      <!-- <canvas
+        <div id="main" ref="videoElement" class="video-element">
+          <VideoCom ref="videoCom" :video-url="videoUrl" />
+          <!-- <canvas
         v-if="canvasShowFlag"
         id="myCanvas"
         ref="myCanvas"
@@ -19,7 +22,20 @@
         @mouseup="mouseup"
         @mousemove="mousemove"
       /> -->
+        </div>
+      </div>
+      <div style="flex:1;padding:7.5px">
+        <div style="display:flex;margin-bottom:15px">
+          <el-input v-model="inputUrl2" @change="inputChange2" />
+          <el-button type="primary" style="margin-left:15px" @click="play2">播放视频</el-button>
+        </div>
+
+        <div id="main2" ref="videoElement2" class="video-element">
+          <VideoCom ref="videoCom2" :video-url="videoUrl2" :show-tools="showTools2" />
+        </div>
+      </div>
     </div>
+
   </div>
 </template>
 
@@ -34,7 +50,15 @@ export default {
   data() {
     return {
       inputUrl: '',
-      videoUrl: ''
+      videoUrl: '',
+      inputUrl2: '',
+      videoUrl2: '',
+      // 视频工具栏配置，如果不传默认全部展示
+      showTools2: {
+        showCaptureTool: true,
+        showRewordTool: true,
+        show3DcontrolTool: false
+      }
       // canvasShowFlag: false,
       // mouseDownFlag: false,
       // startX: '',
@@ -54,10 +78,17 @@ export default {
     inputChange(val) {
       this.videoUrl = val
     },
+    inputChange2(val) {
+      this.videoUrl2 = val
+    },
     // 手动开启直播
     play() {
       this.videoUrl = this.inputUrl
       this.$refs.videoCom.flvRevert(this.videoUrl)
+    },
+    play2() {
+      this.videoUrl2 = this.inputUrl2
+      this.$refs.videoCom2.flvRevert(this.videoUrl2)
     }
     // 手动关闭直播
     // close() {
@@ -200,8 +231,8 @@ export default {
 <style lang="scss" scoped>
 .container-area{
   .video-element{
-    width: 50%;
-    height: auto;
+    // width: 50%;
+    height: 628px;
     position: relative;
     .video-model {
       position: absolute;
