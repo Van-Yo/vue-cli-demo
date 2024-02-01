@@ -35,7 +35,7 @@ const user = {
     token: '',
     hasGetRoute: false,
     routeList: [],
-    theme: 'blove'
+    theme: 'flammulated'
   },
   mutations: {
     setToken(state, data) {
