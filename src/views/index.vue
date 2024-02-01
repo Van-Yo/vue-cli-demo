@@ -18,6 +18,7 @@
     <div class="buttonClass them-btn-primary" @click="goto('canvas')">CANVAS</div>
     <div class="buttonClass them-btn-primary" @click="goto('editTable')">editTable</div>
     <div class="buttonClass them-btn-primary" @click="goto('mqtt')">mqtt</div>
+    <div class="buttonClass them-btn-primary">新测试</div>
     <Dialog :dialog="dialog" @reloadtable="handleQuery" />
   </div>
 </template>
