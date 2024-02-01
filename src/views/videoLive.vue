@@ -12,7 +12,7 @@
     <el-button type="primary" :disabled="!canvasShowFlag" @click="closeCtx">关闭绘画</el-button>
     <el-button type="primary" :disabled="canvasShowFlag" @click="openCtx('line')">开启画直线</el-button> -->
         <div id="main" ref="videoElement" class="video-element">
-          <VideoCom ref="videoCom" :video-url="videoUrl" />
+          <VideoCom ref="videoCom" :video-url="videoUrl" @3Dcontrol="rdControl" @closeVideo="closeVideo" />
           <!-- <canvas
         v-if="canvasShowFlag"
         id="myCanvas"
@@ -89,6 +89,18 @@ export default {
     play2() {
       this.videoUrl2 = this.inputUrl2
       this.$refs.videoCom2.flvRevert(this.videoUrl2)
+    },
+    /**
+     * 视频组件回调
+    */
+    // 3D控球
+    rdControl(val) {
+      console.log('父组件收到3D控球指令', val)
+    },
+    // 关闭视频
+    closeVideo() {
+      console.log('父组件收到关闭视频')
+      // 停止推流
     }
     // 手动关闭直播
     // close() {

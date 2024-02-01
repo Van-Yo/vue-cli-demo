@@ -292,6 +292,8 @@ export default {
       this.client.publish(topic, payload, { qos }, error => {
         if (error) {
           console.log('Publish error', error)
+        } else {
+          console.log('publish ok')
         }
       })
     },

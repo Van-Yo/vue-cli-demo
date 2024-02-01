@@ -421,6 +421,7 @@ export default {
     stopVideo() {
       this.closeFlv()
       this.$message.success('已关闭视频')
+      this.$emit('closeVideo')
     },
     /**
      * 鼠标落下
@@ -431,7 +432,7 @@ export default {
       this.mouseDownFlag = true
       this.startX = e.offsetX // 鼠标落下时的X
       this.startY = e.offsetY // 鼠标落下时的Y
-      console.log(this.startX, this.startY)
+      // console.log(this.startX, this.startY)
     },
     /**
      * 鼠标移动
@@ -451,8 +452,9 @@ export default {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       this.$refs.tools.style.zIndex = 2200
       if (this.startX !== e.offsetX && this.startY !== e.offsetY) {
-        console.log('拖动了')
-        console.log(this.startX, this.startY, e.offsetX, e.offsetY)
+        // console.log('拖动了')
+        // console.log(this.startX, this.startY, e.offsetX, e.offsetY)
+        this.$emit('3Dcontrol', { startX: this.startX, startY: this.startY, offsetX: e.offsetX, offsetY: e.offsetY })
       }
     },
     /**
@@ -542,7 +544,7 @@ export default {
       right: 0;
       bottom: 0;
       z-index: 2001;
-      background: rgba(0, 0, 0, 0.2);
+      background: rgba(0, 0, 0, 0.1);
     }
     .tools{
       display: flex;

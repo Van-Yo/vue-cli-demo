@@ -78,7 +78,7 @@ export default {
           id: 2,
           longitude: '118.79862984870327',
           latitude: '31.905920322554895',
-          altitude: '34.85652170014094'
+          altitude: '22.85652170014094'
         },
         {
           id: 3,
@@ -160,9 +160,9 @@ export default {
       //         '&LAYER=vec&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}' +
       //         '&style=default&format=tiles&tk=' + TDU_Key
       // 在线天地图影像中文标记服务(墨卡托投影)
-      var TDT_CIA_W = 'http://{s}.tianditu.gov.cn/cia_w/wmts?service=wmts&request=GetTile&version=1.0.0' +
-            '&LAYER=cia&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}' +
-            '&style=default.jpg&tk=' + TDU_Key
+      // var TDT_CIA_W = 'http://{s}.tianditu.gov.cn/cia_w/wmts?service=wmts&request=GetTile&version=1.0.0' +
+      //       '&LAYER=cia&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}' +
+      //       '&style=default.jpg&tk=' + TDU_Key
       // 在线天地图矢量中文标记服务(墨卡托投影)
       // var TDT_CVA_W = 'http://{s}.tianditu.gov.cn/cva_w/wmts?service=wmts&request=GetTile&version=1.0.0' +
       //         '&LAYER=cva&tileMatrixSet=w&TileMatrix={TileMatrix}&TileRow={TileRow}&TileCol={TileCol}' +
@@ -181,18 +181,18 @@ export default {
 
       viewer.imageryLayers.addImageryProvider(Img)// 添加到cesium图层上
 
-      const cia = new Cesium.WebMapTileServiceImageryProvider({ // 调用影响中文注记服务
-        url: TDT_CIA_W,
-        layer: 'cia_w',
-        style: 'default',
-        format: 'tiles',
-        tileMatrixSetID: 'GoogleMapsCompatible',
-        subdomains: ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'], // 天地图8个服务器
-        minimumLevel: 0,
-        maximumLevel: 18
-      })
+      // const cia = new Cesium.WebMapTileServiceImageryProvider({ // 调用影响中文注记服务
+      //   url: TDT_CIA_W,
+      //   layer: 'cia_w',
+      //   style: 'default',
+      //   format: 'tiles',
+      //   tileMatrixSetID: 'GoogleMapsCompatible',
+      //   subdomains: ['t0', 't1', 't2', 't3', 't4', 't5', 't6', 't7'], // 天地图8个服务器
+      //   minimumLevel: 0,
+      //   maximumLevel: 18
+      // })
 
-      viewer.imageryLayers.addImageryProvider(cia)// 添加到cesium图层上
+      // viewer.imageryLayers.addImageryProvider(cia)// 添加到cesium图层上
 
       try {
         const tileset = new Cesium.Cesium3DTileset({
@@ -211,10 +211,13 @@ export default {
         // 监听模型加载完成事件
         tileset.readyPromise.then((tileset) => {
           this.tilesetPoints = []
-
+          console.log(tileset._root)
           this.traverseAndCollectPoints(tileset._root)
           // 输出所有点的位置信息
           // console.log(this.tilesetPoints)
+          this.tilesetPoints.map(point => {
+            this.drawWhitePoint(point)
+          })
         }).catch(function(error) {
           console.log(error)
         })
@@ -332,10 +335,50 @@ export default {
       // 解除相机锁定
       viewer.scene.screenSpaceCameraController.enableRotate = true
       const intersections = []
+      // var pointA = this.bluePoints[0].position.getValue() // 假设点A的经纬度和高度
+      // var pointB = this.bluePoints[1].position.getValue() // 假设点B的经纬度和高度
+      // // 获取长方体的最小和最大点，确定长方体的边界
+      // let minPoint = null
+      // let maxPoint = null
+      // // minPoint = Cesium.Cartesian3.minimumByComponent(pointA, pointB)
+      // // maxPoint = Cesium.Cartesian3.maximumByComponent(pointA, pointB)
+      // maxPoint = {
+      //   x: Math.max(pointA.x, pointB.x),
+      //   y: Math.max(pointA.y, pointB.y),
+      //   z: Math.max(pointA.z, pointB.z)
+      // }
+      // minPoint = {
+      //   x: Math.min(pointA.x, pointB.x),
+      //   y: Math.min(pointA.y, pointB.y),
+      //   z: Math.min(pointA.z, pointB.z)
+      // }
+      // console.log({ minPoint, maxPoint })
       for (var i = 0; i < this.tilesetPoints.length; i++) {
         var point = this.tilesetPoints[i]
-        // 检测点是否与线段相交
-        // console.log(this.bluePoints[0].position.getValue())
+
+        // var pointC = point // 假设点C的经纬度和高度
+
+        // // // 判断点C是否在长方体内部
+        // var insideBox = (
+        //   pointC.x >= minPoint.x && pointC.x <= maxPoint.x &&
+        //   pointC.y >= minPoint.y && pointC.y <= maxPoint.y &&
+        //   pointC.z >= minPoint.z && pointC.z <= maxPoint.z
+        // )
+
+        // if (insideBox) {
+        //   console.log('Point C is inside the box.')
+        //   // 检测点是否与线段相交
+        //   // console.log(this.bluePoints[0].position.getValue())
+        //   const intersection = this.checkLineSegment2Sphere(this.bluePoints[0].position.getValue(), this.bluePoints[1].position.getValue(), point)
+        //   // console.log({ intersection })
+        //   if (intersection) {
+        //     this.blueLines[0].polyline.material = Cesium.Color.RED
+        //     intersections.push(intersection)
+        //     break
+        //   }
+        // } else {
+        //   console.log('Point C is outside the box.')
+        // }
         const intersection = this.checkLineSegment2Sphere(this.bluePoints[0].position.getValue(), this.bluePoints[1].position.getValue(), point)
         // console.log({ intersection })
         if (intersection) {
@@ -713,7 +756,7 @@ export default {
       const whitePoint = this.viewer.entities.add({
         position: whitePointCartesian,
         point: {
-          color: Cesium.Color.WHITE,
+          color: Cesium.Color.RED,
           pixelSize: 5
         }
       })
@@ -769,7 +812,7 @@ export default {
      * tile : 点云_root
     */
     traverseAndCollectPoints(tile) {
-      // console.log('+++++++++++++++++++++')
+      // console.log('+++++++++++++++++++++', tile)
       var content = tile.boundingVolume
       // console.log(content)
       if (Cesium.defined(content) && Cesium.defined(content._boundingSphere)) {

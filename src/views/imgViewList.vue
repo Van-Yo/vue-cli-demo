@@ -1,7 +1,7 @@
 <template>
   <div class="container-area">
     <el-button type="primary" @click="viewer">查看大图</el-button>
-    <json-viewer :value="jsonData" copyable theme="my-awesome-json-theme" preview-mode="true" />
+    <json-viewer :value="jsonData" copyable theme="my-awesome-json-theme" :preview-mode="true" />
     <ImgViewer v-if="showViewer" :img-src="imgList" :current-index="currentIndex" @closeImg="closeImg" />
   </div>
 </template>
