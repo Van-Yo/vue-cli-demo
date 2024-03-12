@@ -4,6 +4,7 @@ import store from '@/store'
 import { getToken } from '@/utils/user'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
+import { Message } from 'element-ui'
 
 Vue.use(VueRouter)
 
@@ -71,8 +72,10 @@ router.beforeEach((to, from, next) => {
   const token = getToken()
   // console.log(token, 1111111)
   if (!token && to.name !== LOGIN_PAGE_NAME) {
+    Message.error('会话失效,请重新登录！')
     // 如果没有登录而且前往的页面不是登录页面，跳转到登录页
     next({ name: LOGIN_PAGE_NAME })
+    NProgress.done()
   } else if (!token && to.name === LOGIN_PAGE_NAME) {
     // 如果没有登录而且前往的页面是登录页面，跳转到登录页面
     // 这里有一个坑，一定要注意这一步和上一步得分开写
@@ -81,7 +84,9 @@ router.beforeEach((to, from, next) => {
     next()
   } else {
     if (to.name === LOGIN_PAGE_NAME) {
+      Message.error('没有权限')
       next({ ...from, replace: true })
+      NProgress.done()
     }
     // 如果登录了
     if (!store.state.user.hasGetRoute) {
@@ -103,6 +108,9 @@ router.beforeEach((to, from, next) => {
   next()
 })
 
+// 只有路由发生变化才会执行
+// 假如login=>index，但没有登录，路由被中断，重定向到login，也就是login=>index=>login，路由守卫认为没有发生路由变化，router.afterEach也就不执行
+// 所以页面加载进度条NProgress.done()在router.beforeEach里面👆也在两个地方写了
 router.afterEach(() => {
   NProgress.done()
 })
