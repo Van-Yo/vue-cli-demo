@@ -96,6 +96,7 @@ router.beforeEach((to, from, next) => {
           const element = store.state.user.routeList[i]
           router.addRoute('/', element)
         }
+        console.log(router)
         // 这里也是一个坑，不能使用简单的 next()
         // 如果直接使用 next() 刷新后会一直白屏
         next({ ...to, replace: true })
@@ -111,7 +112,12 @@ router.beforeEach((to, from, next) => {
 // 只有路由发生变化才会执行
 // 假如login=>index，但没有登录，路由被中断，重定向到login，也就是login=>index=>login，路由守卫认为没有发生路由变化，router.afterEach也就不执行
 // 所以页面加载进度条NProgress.done()在router.beforeEach里面👆也在两个地方写了
-router.afterEach(() => {
+router.afterEach((to) => {
+  if (to.meta.title) {
+    document.title = to.meta.title
+  } else {
+    document.title = 'vue-cli-demo'
+  }
   NProgress.done()
 })
 

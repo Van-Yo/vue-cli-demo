@@ -1,5 +1,5 @@
 import Layout from '@/views/layout'
-import { api } from '../../api'
+// import { api } from '../../api'
 import { setToken, removeToken } from '@/utils/user'
 
 const loadView = (viewPath) => {
@@ -62,24 +62,31 @@ const user = {
     login({ state, commit }) {
       // eslint-disable-next-line no-async-promise-executor
       return new Promise(async(resolve) => {
-        const [e, r] = await api.getUserInfo()
-        if (!e && r) {
-          const token = '1122334'
-          commit('setToken', token)
-          setToken(token)
-          resolve(token)
-        }
+        // const [e, r] = await api.getUserInfo()
+        // if (!e && r) {
+        //   const token = '1122334'
+        //   commit('setToken', token)
+        //   setToken(token)
+        //   resolve(token)
+        // }
+        const token = '1122334'
+        commit('setToken', token)
+        setToken(token)
+        resolve(token)
       })
     },
     loginOut({ state, commit }) {
       // eslint-disable-next-line no-async-promise-executor
       return new Promise(async(resolve) => {
-        const [e, r] = await api.loginOut()
-        if (!e && r) {
-          commit('removeToken')
-          removeToken()
-          resolve()
-        }
+        // const [e, r] = await api.loginOut()
+        // if (!e && r) {
+        //   commit('removeToken')
+        //   removeToken()
+        //   resolve()
+        // }
+        commit('removeToken')
+        removeToken()
+        resolve()
       })
     },
     getRouteList({ state, commit }) {
@@ -95,17 +102,25 @@ const user = {
           const data = {
             token,
             routes: [
-              { path: '/echarts', name: 'echarts', component: 'echarts' },
-              { path: '/three', name: 'three', component: '14龟池过滤' },
-              { path: '/dataHandle', name: 'dataHandle', component: 'dataHandle' },
-              { path: '/imgViewList', name: 'imgViewList', component: 'imgViewList' },
-              { path: '/videoLive', name: 'videoLive', component: 'videoLive' },
-              { path: '/cesium', name: 'cesium', component: 'cesium/test2' },
-              { path: '/asyncAwait', name: 'asyncAwait', component: 'asyncAwait' },
-              { path: '/offLineMap', name: 'offLineMap', component: 'offLineMap' },
-              { path: '/canvas', name: 'canvas', component: 'canvas' },
-              { path: '/editTable', name: 'editTable', component: 'editTable' },
-              { path: '/mqtt', name: 'mqtt', component: 'mqtt' },
+              { path: '/echarts', name: 'echarts', component: 'echarts', meta: { title: 'echarts' }},
+              { path: '/three', name: 'three', component: '14龟池过滤', meta: { title: 'three' }},
+              { path: '/dataHandle', name: 'dataHandle', component: 'dataHandle', meta: { title: 'dataHandle' }},
+              { path: '/imgViewList', name: 'imgViewList', component: 'imgViewList', meta: { title: 'imgViewList' }},
+              { path: '/videoLive', name: 'videoLive', component: 'videoLive', meta: { title: 'videoLive' }},
+              { path: '/cesium', name: 'cesium', component: 'cesium/test2', meta: { title: 'cesium' }},
+              { path: '/asyncAwait', name: 'asyncAwait', component: 'asyncAwait', meta: { title: 'asyncAwait' }},
+              { path: '/offLineMap', name: 'offLineMap', component: 'offLineMap', meta: { title: 'offLineMap' }},
+              { path: '/canvas', name: 'canvas', component: 'canvas', meta: { title: 'canvas' }},
+              { path: '/editTable', name: 'editTable', component: 'editTable', meta: { title: 'editTable' }},
+              {
+                path: 'mqtt',
+                name: 'mqtt',
+                component: 'mqtt/mqtest',
+                redirect: 'mqtt/index2222',
+                children: [
+                  { path: 'index2222', name: 'index2222', component: 'mqtt/index' }
+                ]
+              },
               {
                 path: '*',
                 redirect: '/404'
