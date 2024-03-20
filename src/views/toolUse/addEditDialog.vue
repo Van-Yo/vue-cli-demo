@@ -1,24 +1,7 @@
 <template>
   <div class="container-area">
-    <div class="buttonClass them-btn-primary" @click="goto('downloadPDF')">下载PDF</div>
-    <div class="buttonClass them-btn-primary" @click="goto('print')">打印</div>
-    <div class="buttonClass them-btn-primary" @click="goto('echarts')">echarts</div>
-    <div class="buttonClass them-btn-primary" @click="goto('three')">three</div>
-    <div class="buttonClass them-btn-primary" @click="goto('svgIconUse')">svg和主题色</div>
-    <div class="buttonClass them-btn-primary" @click="goto('rate')">还贷器</div>
-    <div class="buttonClass them-btn-primary" @click="goto('fileUpload')">文件上传</div>
-    <div class="buttonClass them-btn-primary" @click="goto('dataHandle')">JS数据处理</div>
-    <div class="buttonClass them-btn-primary" @click="goto('imgViewList')">查看大图</div>
-    <div class="buttonClass them-btn-primary" @click="goto('videoLive')">直播</div>
-    <div class="buttonClass them-btn-primary" @click="goto('cesium')">cesium</div>
-    <div class="buttonClass them-btn-primary" @click="goto('asyncAwait')">asyncAwait</div>
     <div class="buttonClass them-btn-primary" @click="opendAddDialog">新增弹框</div>
     <div class="buttonClass them-btn-primary" @click="opendEditDialog">修改弹框</div>
-    <div class="buttonClass them-btn-primary" @click="goto('offLineMap')">百度离线地图</div>
-    <div class="buttonClass them-btn-primary" @click="goto('canvas')">CANVAS</div>
-    <div class="buttonClass them-btn-primary" @click="goto('editTable')">editTable</div>
-    <div class="buttonClass them-btn-primary" @click="goto('mqtt')">mqtt</div>
-    <div class="buttonClass them-btn-primary">新测试</div>
     <Dialog :dialog="dialog" @reloadtable="handleQuery" />
   </div>
 </template>
@@ -52,9 +35,6 @@ export default {
   },
   created() {},
   methods: {
-    goto(name) {
-      this.$router.push(name)
-    },
     opendAddDialog() {
       this.dialog = {
         name: '',

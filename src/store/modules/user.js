@@ -46,7 +46,7 @@ const user = {
       // 先将 JSON 格式的路由列表解析为 JavaScript List
       // 再用路由解析函数解析 List 为真正的路由列表
       state.routeList = filterAsyncRouter(JSON.parse(JSON.stringify(data)))
-      console.log(state.routeList, '111111111111111111111111111111')
+      // console.log(state.routeList, '111111111111111111111111111111')
       // state.routeList = data.routes
       // 修改路由获取状态
       state.hasGetRoute = true
@@ -102,34 +102,52 @@ const user = {
           const data = {
             token,
             routes: [
-              { path: '/echarts', name: 'echarts', component: 'echarts', meta: { title: 'echarts' }},
-              { path: '/three', name: 'three', component: '14龟池过滤', meta: { title: 'three' }},
-              { path: '/dataHandle', name: 'dataHandle', component: 'dataHandle', meta: { title: 'dataHandle' }},
-              { path: '/imgViewList', name: 'imgViewList', component: 'imgViewList', meta: { title: 'imgViewList' }},
-              { path: '/videoLive', name: 'videoLive', component: 'videoLive', meta: { title: 'videoLive' }},
-              { path: '/cesium', name: 'cesium', component: 'cesium/test2', meta: { title: 'cesium' }},
-              { path: '/asyncAwait', name: 'asyncAwait', component: 'asyncAwait', meta: { title: 'asyncAwait' }},
-              { path: '/offLineMap', name: 'offLineMap', component: 'offLineMap', meta: { title: 'offLineMap' }},
-              { path: '/canvas', name: 'canvas', component: 'canvas', meta: { title: 'canvas' }},
-              { path: '/editTable', name: 'editTable', component: 'editTable', meta: { title: 'editTable' }},
               {
-                path: 'mqtt',
-                name: 'mqtt',
-                component: 'mqtt/mqtest',
-                redirect: 'mqtt/index2222',
+                path: '/componentUse',
+                name: 'componentUse',
+                component: 'componentUse/index',
+                meta: { title: '组件使用演示', icon: 'el-icon-s-shop' },
                 children: [
-                  { path: 'index2222', name: 'index2222', component: 'mqtt/index' }
+                  { path: 'videoLive', name: 'videoLive', component: 'componentUse/videoLive', meta: { title: '视频组件' }},
+                  { path: 'imgViewList', name: 'imgViewList', component: 'componentUse/imgViewList', meta: { title: '图片组件' }},
+                  { path: 'svgIconUse', name: 'svgIconUse', component: 'componentUse/svgIconUse', meta: { title: 'svg组件' }}
                 ]
               },
               {
-                path: '*',
-                redirect: '/404'
+                path: '/toolUse',
+                name: 'toolUse',
+                component: 'toolUse/index',
+                meta: { title: '工具使用演示', icon: 'el-icon-edit' },
+                children: [
+                  { path: 'mqtt', name: 'mqtt', component: 'toolUse/mqtest', meta: { title: 'mqtt测试' }},
+                  { path: 'rate', name: 'rate', component: 'toolUse/rate', meta: { title: '房贷计算器' }},
+                  { path: 'fileUpload', name: 'fileUpload', component: 'toolUse/fileUpload', meta: { title: '文件上传' }},
+                  { path: 'addEditDialog', name: 'addEditDialog', component: 'toolUse/addEditDialog', meta: { title: '增改弹窗' }}
+                ]
+              },
+              {
+                path: '/learningUse',
+                name: 'learningUse',
+                component: 'learningUse/index',
+                meta: { title: '学习笔记演示', icon: 'el-icon-document' },
+                children: [
+                  { path: 'echarts', name: 'echarts', component: 'learningUse/echarts', meta: { title: 'echarts' }},
+                  { path: 'three', name: 'three', component: 'learningUse/three', meta: { title: 'three' }},
+                  { path: 'dataHandle', name: 'dataHandle', component: 'learningUse/dataHandle', meta: { title: '数据处理' }},
+                  { path: 'cesium', name: 'cesium', component: 'cesium/test2', meta: { title: 'cesium' }},
+                  { path: 'offLineMap', name: 'offLineMap', component: 'learningUse/offLineMap', meta: { title: '百度离线地图' }},
+                  { path: 'canvas', name: 'canvas', component: 'learningUse/canvas', meta: { title: 'canvas' }},
+                  { path: 'editTable', name: 'editTable', component: 'learningUse/editTable', meta: { title: '表格修改' }},
+                  { path: 'downloadPDF', name: 'downloadPDF', component: 'learningUse/downloadPDF', meta: { title: '下载pdf' }},
+                  { path: 'print', name: 'print', component: 'learningUse/print', meta: { title: '打印文档' }}
+                ]
               }
+              // { path: '/asyncAwait', name: 'asyncAwait', component: 'asyncAwait', meta: { title: '异步转同步' }},
             ]
           }
           commit('setRouteList', data.routes)
           resolve()
-        }, 1000)
+        }, 300)
       })
     },
     themeChange({

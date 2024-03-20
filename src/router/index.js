@@ -37,16 +37,10 @@ const staticRoutes = [
   {
     path: '/',
     name: '/',
-    redirect: '/index',
+    redirect: '/home',
     component: () => import('@/views/layout'),
     children: [
-      { path: 'index', name: 'index', component: () => import('@/views/index') },
-      { path: 'downloadPDF', name: 'downloadPDF', component: () => import('@/views/downloadPDF') },
-      { path: 'print', name: 'print', component: () => import('@/views/print') },
-      { path: 'svgIconUse', name: 'svgIconUse', component: () => import('@/views/svgIconUse') },
-      { path: 'rate', name: 'rate', component: () => import('@/views/Rate') },
-      { path: 'frontendPark', name: 'frontendPark', component: () => import('@/views/frontendPark') },
-      { path: 'fileUpload', name: 'fileUpload', component: () => import('@/views/fileUpload') },
+      { path: 'home', name: 'home', component: () => import('@/views/frontendPark') },
       {
         path: '404',
         name: '404',
@@ -96,7 +90,11 @@ router.beforeEach((to, from, next) => {
           const element = store.state.user.routeList[i]
           router.addRoute('/', element)
         }
-        console.log(router)
+        router.addRoute({
+          path: '*',
+          redirect: '/404'
+        })
+        // console.log(router)
         // 这里也是一个坑，不能使用简单的 next()
         // 如果直接使用 next() 刷新后会一直白屏
         next({ ...to, replace: true })

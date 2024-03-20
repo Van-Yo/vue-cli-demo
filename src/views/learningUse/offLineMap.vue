@@ -73,6 +73,7 @@ export default {
 
 <style lang="scss" scoped>
 .container-area{
+  height: 100%;
     #mapdiv{
         width: 100%;
         height: 100%;

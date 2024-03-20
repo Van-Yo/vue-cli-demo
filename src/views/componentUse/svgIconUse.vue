@@ -21,7 +21,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/styles/mixin.scss';
+@import '../../assets/styles/mixin.scss';
 @include themify($themes) {
   .title{
       color: themed('them-title-color');
