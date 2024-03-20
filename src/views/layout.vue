@@ -1,41 +1,20 @@
 <template>
-  <div class="container-area">
+  <div ref="appRef" class="container-area">
     <el-container style="height:100%">
-      <el-aside style="position:relative;padding-top:70px">
+      <el-aside style="position:relative;padding-top:70px;background:#fff">
         <div style="height:60px;width:60px;position:absolute;right:50%;margin-right:-30px;cursor: pointer;top:0" @click="$router.push('/')">
           <img src="../assets/122028.png" alt="" style="width:100%">
         </div>
-        <el-menu default-active="1-4-1" class="el-menu-vertical-demo" :collapse="isCollapse" @open="handleOpen" @close="handleClose">
-          <el-submenu index="1">
+        <el-menu class="el-menu-vertical-demo" :collapse="isCollapse" @open="handleOpen" @close="handleClose">
+          <el-submenu v-for="(item,index) in routeList" :key="index" :index="index+''">
             <template slot="title">
-              <i class="el-icon-location" />
-              <span slot="title">导航一</span>
+              <i :class="item.meta.icon" />
+              <span slot="title">{{ item.meta.title }}</span>
             </template>
             <el-menu-item-group>
-              <span slot="title">分组一</span>
-              <el-menu-item index="1-1" @click="goTo('frontendPark')">frontend-park</el-menu-item>
-              <el-menu-item index="1-2">选项2</el-menu-item>
+              <el-menu-item v-for="(jtem,jdex) in item.children" :key="jdex" :index="item.path+'/'+jtem.path" @click="goTo(item.path+'/'+jtem.path)">{{ jtem.meta.title }}</el-menu-item>
             </el-menu-item-group>
-            <el-menu-item-group title="分组2">
-              <el-menu-item index="1-3">选项3</el-menu-item>
-            </el-menu-item-group>
-            <el-submenu index="1-4">
-              <span slot="title">选项4</span>
-              <el-menu-item index="1-4-1">选项1</el-menu-item>
-            </el-submenu>
           </el-submenu>
-          <el-menu-item index="2">
-            <i class="el-icon-menu" />
-            <span slot="title">导航二</span>
-          </el-menu-item>
-          <el-menu-item index="3" disabled>
-            <i class="el-icon-document" />
-            <span slot="title">导航三</span>
-          </el-menu-item>
-          <el-menu-item index="4">
-            <i class="el-icon-setting" />
-            <span slot="title">导航四</span>
-          </el-menu-item>
         </el-menu>
         <i style="position:absolute;right:50%;bottom:5px;margin-right:-13px;font-size:26px;cursor: pointer;" :class="isCollapse?'el-icon-s-unfold':'el-icon-s-fold'" @click="isCollapse=!isCollapse" />
       </el-aside>
@@ -69,8 +48,10 @@
 </template>
 
 <script>
+// import drawMixin from '../utils/drawMixin'
 export default {
   components: {},
+  // mixins: [drawMixin],
   data() {
     return {
       isCollapse: true
@@ -79,6 +60,9 @@ export default {
   computed: {
     isLightTheme() {
       return this.$store.state.user.theme === 'blove'
+    },
+    routeList() {
+      return this.$store.state.user.routeList
     }
   },
   created() {},
@@ -115,6 +99,15 @@ export default {
 <style lang="scss" scoped>
 .container-area{
   height: 100%;
+  // color: #d3d6dd;
+  // width: 1920px;
+  // height: 1080px;
+  // position: absolute;
+  // top: 50%;
+  // left: 50%;
+  // transform: translate(-50%, -50%);
+  // transform-origin: left top;
+  // overflow: hidden;
   .el-header, .el-footer {
     // background-color: #6777ef;
     color: #333;
