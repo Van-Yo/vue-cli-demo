@@ -3,7 +3,7 @@
     <el-container style="height:100%">
       <el-aside style="position:relative;padding-top:70px;background:#fff">
         <div style="height:60px;width:60px;position:absolute;right:50%;margin-right:-30px;cursor: pointer;top:0" @click="$router.push('/')">
-          <img src="../assets/122028.png" alt="" style="width:100%">
+          <!-- <img src="../assets/122028.png" alt="" style="width:100%"> -->
         </div>
         <el-menu class="el-menu-vertical-demo" :collapse="isCollapse" @open="handleOpen" @close="handleClose">
           <el-submenu v-for="(item,index) in routeList" :key="index" :index="index+''">
