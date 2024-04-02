@@ -37,7 +37,7 @@ class DroneFlightAnimator {
    * options.isShoot      // 是否为拍摄点
   */
   flyTo(options) {
-    // console.log(options);
+    // 删除视锥
     this.RemovePrimitives()    
     let destination = Cesium.Cartesian3.fromDegrees(options.aircraftLongitude, options.aircraftLatitude, options.aircraftAltitude)
     const startLocation = this.droneEntity.position.getValue(Cesium.JulianDate.now());
@@ -71,7 +71,7 @@ class DroneFlightAnimator {
       // console.log(t);
       // 表示飞行结束
       if (t >= 1.0) {
-        // console.log(t);
+        console.log(t);
 
         // 这里非常重要
         // 一定要更新一次t=1的时候飞机以及航线位置

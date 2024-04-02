@@ -29,6 +29,9 @@
       <label>
         <el-button icon="el-icon-location" type="primary" @click="pointChangeTest(viewer)">拖动测试</el-button>
       </label>
+      <label>
+        <el-button icon="el-icon-location" type="primary" @click="click3DTile(viewer)">点云选点</el-button>
+      </label>
     </div>
   </div>
 </template>
@@ -65,7 +68,6 @@ export default {
       /**
        * ***********************以上viewer.entities.add***********************
       */
-      tilesetPoints: [], // 点云所有点
 
       airLinePoints: [
         {
@@ -132,7 +134,8 @@ export default {
       startMousePosition: {
         x: null,
         y: null
-      }
+      },
+      testDrove: []
     }
   },
   mounted() {
@@ -147,6 +150,7 @@ export default {
         infoBox: false
       })
       this.viewer = viewer
+      // 拖动鼠标左键旋转viewer
       // viewer.scene.screenSpaceCameraController.enableRotate = false
       // TDU_Key => https://console.tianditu.gov.cn/api/key
       var TDU_Key = 'fa9ccc712d703cfbcdda25fb0e164bc0'// 天地图申请的密钥
@@ -194,30 +198,26 @@ export default {
 
       // viewer.imageryLayers.addImageryProvider(cia)// 添加到cesium图层上
 
+      // 加载3DTileset
       try {
         const tileset = new Cesium.Cesium3DTileset({
-          url: 'http://218.94.141.150:38010/pointCloud/tileset.json' // 文件的路径
+          url: '/cesiumTileset/tileset.json' // 文件的路径
         })
         // console.log({ tileset })
         var pointCloud = viewer.scene.primitives.add(tileset)
         this.pointCloud = pointCloud
         pointCloud.show = true
-        // 设置点的大小
-        tileset.style = new Cesium.Cesium3DTileStyle({
-          pointSize: 5
-        })
+        // 设置点的大小（点云点设置）
+        // tileset.style = new Cesium.Cesium3DTileStyle({
+        //   pointSize: 5
+        // })
         await viewer.zoomTo(tileset)
         this.tileset = tileset
         // 监听模型加载完成事件
         tileset.readyPromise.then((tileset) => {
-          this.tilesetPoints = []
-          console.log(tileset._root)
-          this.traverseAndCollectPoints(tileset._root)
-          // 输出所有点的位置信息
-          // console.log(this.tilesetPoints)
-          this.tilesetPoints.map(point => {
-            this.drawWhitePoint(point)
-          })
+          // 获取点云所有点的坐标
+          // this.tilesetPoints = []
+          // this.traverseAndCollectPoints(tileset._root)
         }).catch(function(error) {
           console.log(error)
         })
@@ -230,7 +230,18 @@ export default {
         console.log(error)
       }
       this.initPlaneViewer(viewer) // 初始化飞机
-      // this.addFlyDrove(viewer) // 添加鼠标点击事件
+    },
+    showIntersection(result, destPoint, viewPoint) {
+      // 如果是场景模型的交互点，排除交互点是地球表面
+      if (Cesium.defined(result) && Cesium.defined(result.object)) {
+        console.log(result, destPoint, viewPoint)
+        // // 可视区域
+        // this.drawWhiteLine(result.position, viewPoint, 3, Cesium.Color.RED, false)
+        // 不可视区域
+        this.drawWhiteLine(viewPoint, destPoint, 3, Cesium.Color.RED, false)
+      } else {
+        this.drawWhiteLine(viewPoint, destPoint, 3, Cesium.Color.GREEN, false)
+      }
     },
     pointChangeTest(viewer) {
       this.$notify.info({
@@ -276,48 +287,51 @@ export default {
     mouseMoveAction(e, viewer) {
       if (this.leftDownFlag && this.pickedEntity) {
         var scene = viewer.scene
-        // console.log(e.endPosition)
+        // 鼠标移动在二维上的偏差
         var deltaX = e.endPosition.x - this.startMousePosition.x
         var deltaY = e.endPosition.y - this.startMousePosition.y
-        // console.log({ deltaX, deltaY })
-
-        // var scene = viewer.scene
+        // 第一个点（底部白点）在二维上的坐标
         var canvasPosition = new Cesium.Cartesian2()
         var canvasCoordinates = scene.cartesianToCanvasCoordinates(this.whitePoints[0].position.getValue(), canvasPosition)
+        // 给第一个点（底部白点）的二维坐标加上鼠标移动的偏差
         const whitePointNewX = canvasCoordinates.x + deltaX
         const whitePointNewY = canvasCoordinates.y + deltaY
-        // console.log(canvasCoordinates)
-
+        // 通过相机射更新后的第一个点（底部白点）的二维坐标，生成更新的三维坐标（地面）
         const ray = viewer.camera.getPickRay({ x: whitePointNewX, y: whitePointNewY })
         const cartesian = viewer.scene.globe.pick(ray, viewer.scene)
-        // const cartesian = viewer.scene.camera.pickEllipsoid(
-        //   e.endPosition,
-        //   viewer.scene.globe.ellipsoid
-        // )
-        // console.log(cartesian)
-        // console.log(this.GetWGS84FromDKR(cartesian))
         this.whitePoints[0].position = cartesian
+        // 更新鼠标位置
         this.startMousePosition.x = e.endPosition.x
         this.startMousePosition.y = e.endPosition.y
+        // 更新其他entity位置
+        const res = this.GetWGS84FromDKR(this.bluePoints[0].position.getValue())
+        // console.log({ res })
         var bluePointPosition = Cesium.Cartographic.fromCartesian(cartesian)
-        // bluePointPosition Jr{longitude: 2.0734470141849206, latitude: 0.5568645155301508, height: 10.430285800919577}
-        // console.log('bluePointPosition', bluePointPosition)
-        bluePointPosition.height += 20 // 100 meters above the white point
+        bluePointPosition.height = res.z
         var bluePointCartesian = Cesium.Cartographic.toCartesian(bluePointPosition)
+        // console.log(this.bluePoints[0].position.getValue())
+        // var bluePointCartesian = {
+        //   x: cartesian.x,
+        //   y: cartesian.y,
+        //   z: this.bluePoints[0].position.getValue().z
+        // }
+        // 第一个点（空中蓝点）
         this.bluePoints[0].position = bluePointCartesian
+        // 蓝点文字
         this.bluePointLabels[0].position = bluePointCartesian
+        // 垂直线
         this.whiteLines[0].polyline.positions = new Cesium.CallbackProperty(function(time, result) {
           return [cartesian, bluePointCartesian]
         }, false)
+        // 高度标识
         var midPoint = this.computeMidPointCartesian(cartesian, bluePointCartesian)
         this.heightLabels[0].position = midPoint
-        // console.log(this.blueLines[0].polyline.positions)
-        // console.log(this.bluePoints[1].position.getValue())
+        // 第一条航线
         const nextPointCartesian = this.bluePoints[1].position.getValue()
         this.blueLines[0].polyline.positions = new Cesium.CallbackProperty(function(time, result) {
           return [bluePointCartesian, nextPointCartesian]
         }, false)
-
+        // 第一条航线距离标识
         var distance = Cesium.Cartesian3.distance(bluePointCartesian, nextPointCartesian)
         var distanceInMeters = distance.toFixed(0) + 'm'
         // 计算两个笛卡尔坐标的中心坐标
@@ -334,82 +348,8 @@ export default {
       this.pickedEntity = null
       // 解除相机锁定
       viewer.scene.screenSpaceCameraController.enableRotate = true
-      const intersections = []
-      // var pointA = this.bluePoints[0].position.getValue() // 假设点A的经纬度和高度
-      // var pointB = this.bluePoints[1].position.getValue() // 假设点B的经纬度和高度
-      // // 获取长方体的最小和最大点，确定长方体的边界
-      // let minPoint = null
-      // let maxPoint = null
-      // // minPoint = Cesium.Cartesian3.minimumByComponent(pointA, pointB)
-      // // maxPoint = Cesium.Cartesian3.maximumByComponent(pointA, pointB)
-      // maxPoint = {
-      //   x: Math.max(pointA.x, pointB.x),
-      //   y: Math.max(pointA.y, pointB.y),
-      //   z: Math.max(pointA.z, pointB.z)
-      // }
-      // minPoint = {
-      //   x: Math.min(pointA.x, pointB.x),
-      //   y: Math.min(pointA.y, pointB.y),
-      //   z: Math.min(pointA.z, pointB.z)
-      // }
-      // console.log({ minPoint, maxPoint })
-      for (var i = 0; i < this.tilesetPoints.length; i++) {
-        var point = this.tilesetPoints[i]
-
-        // var pointC = point // 假设点C的经纬度和高度
-
-        // // // 判断点C是否在长方体内部
-        // var insideBox = (
-        //   pointC.x >= minPoint.x && pointC.x <= maxPoint.x &&
-        //   pointC.y >= minPoint.y && pointC.y <= maxPoint.y &&
-        //   pointC.z >= minPoint.z && pointC.z <= maxPoint.z
-        // )
-
-        // if (insideBox) {
-        //   console.log('Point C is inside the box.')
-        //   // 检测点是否与线段相交
-        //   // console.log(this.bluePoints[0].position.getValue())
-        //   const intersection = this.checkLineSegment2Sphere(this.bluePoints[0].position.getValue(), this.bluePoints[1].position.getValue(), point)
-        //   // console.log({ intersection })
-        //   if (intersection) {
-        //     this.blueLines[0].polyline.material = Cesium.Color.RED
-        //     intersections.push(intersection)
-        //     break
-        //   }
-        // } else {
-        //   console.log('Point C is outside the box.')
-        // }
-        const intersection = this.checkLineSegment2Sphere(this.bluePoints[0].position.getValue(), this.bluePoints[1].position.getValue(), point)
-        // console.log({ intersection })
-        if (intersection) {
-          this.blueLines[0].polyline.material = Cesium.Color.RED
-          intersections.push(intersection)
-          break
-        }
-      }
-      if (!intersections.length) {
-        this.blueLines[0].polyline.material = Cesium.Color.BLUE
-      }
-    },
-    getMousePosition(e) {
-      return new Cesium.Cartesian2(
-        e.position.x,
-        e.position.y
-      )
-    },
-    createPoint(position) {
-      var entity = this.viewer.entities.add({
-        position: position,
-        point: {
-          pixelSize: 10,
-          color: Cesium.Color.YELLOW,
-          outlineColor: Cesium.Color.BLACK,
-          outlineWidth: 2,
-          disableDepthTestDistance: Number.POSITIVE_INFINITY
-        }
-      })
-
-      return entity
+      // 鼠标抬起操作
+      // ...
     },
     // 点击选点
     addFlyDrove(viewer) {
@@ -475,7 +415,7 @@ export default {
             this.blueLines.push(blueLine) // Add red line to the array
             // et{x: -2610857.690867494, y: 4749287.953297833, z: 3351571.181484913}
             // console.log(this.bluePoints[this.bluePoints.length - 2].position.getValue())
-            const intersections = []
+            // const intersections = []
 
             // 检测两点形成的射线会不会与点球相交❌❌❌❌❌❌❌❌❌
             // const ray = new Cesium.Ray(positions[0], Cesium.Cartesian3.subtract(positions[1], positions[0], new Cesium.Cartesian3()))
@@ -497,21 +437,21 @@ export default {
 
             // 检测两点形成的线段会不会与点球相交🍃🍃🍃🍃🍃🍃🍃🍃🍃
             // 遍历模型中的每个点
-            for (var i = 0; i < this.tilesetPoints.length; i++) {
-              var point = this.tilesetPoints[i]
-              // 检测点是否与线段相交
-              var intersection = this.checkLineSegment2Sphere(positions[0], positions[1], point)
-              if (intersection) {
-                blueLine.polyline.material = Cesium.Color.RED
-                intersections.push(intersection)
-              }
-            }
-            if (intersections.length) {
-              this.$message.error('航线不可用')
-              console.log('点与射线相交。', '相交点是：', intersections)
-            } else {
-              console.log('点与射线没有相交。')
-            }
+            // for (var i = 0; i < this.tilesetPoints.length; i++) {
+            //   var point = this.tilesetPoints[i]
+            //   // 检测点是否与线段相交
+            //   var intersection = this.checkLineSegment2Sphere(positions[0], positions[1], point)
+            //   if (intersection) {
+            //     blueLine.polyline.material = Cesium.Color.RED
+            //     intersections.push(intersection)
+            //   }
+            // }
+            // if (intersections.length) {
+            //   this.$message.error('航线不可用')
+            //   console.log('点与射线相交。', '相交点是：', intersections)
+            // } else {
+            //   console.log('点与射线没有相交。')
+            // }
 
             var distance = Cesium.Cartesian3.distance(positions[0], positions[1])
             var distanceInMeters = distance.toFixed(0) + 'm'
@@ -523,51 +463,32 @@ export default {
         } else {
           console.log('未能获取地理坐标。')
         }
-
-        // // 返回一个笛卡尔坐标
-        // const position = viewer.scene.pickPosition(event.position)
-        // console.log(position)
-        // // 如果有这个坐标
-        // if (Cesium.defined(position)) {
-        //   console.log(position)
-        //   // 添加点击点
-        //   // const pointEntity = viewer.entities.add({
-        //   //   position: position,
-        //   //   point: {
-        //   //     color: Cesium.Color.BLUE,
-        //   //     pixelSize: 20
-        //   //   }
-        //   // })
-        //   // const res = this.GetWGS84FromDKR(position)
-        //   // console.log('========================', res)
-        //   // const options = {
-        //   //   aircraftLongitude: res.x,
-        //   //   aircraftLatitude: res.y,
-        //   //   aircraftAltitude: res.z,
-        //   //   gimbalPitchValue: 0.77056379217234,
-        //   //   gimbalYawValue: -90.52559171972544,
-        //   //   isShoot: true
-        //   // }
-        //   // this.droneAnimator.SetLookCone({
-        //   //   destination: Cesium.Cartesian3.fromDegrees(options.aircraftLongitude, options.aircraftLatitude, options.aircraftAltitude),
-        //   //   gimbalPitchValue: options.gimbalPitchValue,
-        //   //   gimbalYawValue: options.gimbalYawValue
-        //   // })
-        //   // const timer = setInterval(() => {
-        //   //   options.aircraftLongitude += 0.000001
-        //   //   pointEntity.position = Cesium.Cartesian3.fromDegrees(options.aircraftLongitude, options.aircraftLatitude, options.aircraftAltitude)
-        //   //   this.droneAnimator.SetLookCone({
-        //   //     destination: Cesium.Cartesian3.fromDegrees(options.aircraftLongitude, options.aircraftLatitude, options.aircraftAltitude),
-        //   //     gimbalPitchValue: options.gimbalPitchValue,
-        //   //     gimbalYawValue: options.gimbalYawValue
-        //   //   })
-        //   // }, 100)
-        //   // 飞行
-        //   // this.positionsList.push(options)
-        //   // console.log(this.positionsList)
-        //   // this.droneAnimator.flyTo(options)
-        //   // console.log(viewer.entities)
-        // }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+    },
+    // 鼠标点击点云选点
+    click3DTile(viewer) {
+      var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas)
+      handler.setInputAction((click) => {
+        var pickedPosition = viewer.scene.pickPosition(click.position)
+        if (Cesium.defined(pickedPosition)) {
+          // 在这里你可以处理拾取到的点的位置
+          console.log('Picked point:', pickedPosition)
+          viewer.entities.add({
+            position: pickedPosition,
+            point: {
+              color: Cesium.Color.BLUE,
+              pixelSize: 8
+            }
+          })
+          this.testDrove.push(pickedPosition)
+          if (this.testDrove.length === 2) {
+            var direction = Cesium.Cartesian3.normalize(Cesium.Cartesian3.subtract(this.testDrove[1], this.testDrove[0], new Cesium.Cartesian3()), new Cesium.Cartesian3())
+            // 建立射线
+            var ray = new Cesium.Ray(this.testDrove[0], direction)
+            var result = viewer.scene.pickFromRay(ray, this.testDrove) // 计算交互点，返回第一个
+            this.showIntersection(result, this.testDrove[1], this.testDrove[0])
+          }
+        }
       }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
     },
     // 展示航线1
@@ -617,17 +538,6 @@ export default {
           // ******画两个航点之间的连线******
           var blueLine = this.drawWhiteLine(positions[0], positions[1], 3, Cesium.Color.BLUE, false)
           this.blueLines.push(blueLine)
-          // 遍历点云位置数据
-          for (var i = 0; i < this.tilesetPoints.length; i++) {
-            const point = this.tilesetPoints[i]
-            // 检查线段与球体的交点
-            var intersection = this.checkLineSegment2Sphere(positions[0], positions[1], point)
-            // 如果相交
-            if (intersection) {
-              // 修改两个航点之间的连线颜色为红色
-              blueLine.polyline.material = Cesium.Color.RED
-            }
-          }
 
           // ******标注距离标识******
           // 计算两点之间的距离
@@ -687,7 +597,7 @@ export default {
       this.droneAnimator = new DroneFlightAnimator({ viewer, initPosition }, (msg, positions) => {
         // this.draw()
         console.log('飞行一次结束，当前飞机位置为：' + msg)
-        // console.log('飞行位置集合：', positions)
+        console.log('飞行位置集合：', positions)
         this.positions = positions
         this.positionIndex++
         // console.log(this.positionIndex)
@@ -756,7 +666,7 @@ export default {
       const whitePoint = this.viewer.entities.add({
         position: whitePointCartesian,
         point: {
-          color: Cesium.Color.RED,
+          color: Cesium.Color.WHITE,
           pixelSize: 5
         }
       })
@@ -801,7 +711,7 @@ export default {
         //   height: altitude
         // }
         point: {
-          color: Cesium.Color.WHITE,
+          color: Cesium.Color.BLUE,
           pixelSize: 15
         }
       })
@@ -811,21 +721,21 @@ export default {
      * 递归查询点云所有点，注意这里是根据点云文件数据个性化字段去获取🌏et坐标
      * tile : 点云_root
     */
-    traverseAndCollectPoints(tile) {
-      // console.log('+++++++++++++++++++++', tile)
-      var content = tile.boundingVolume
-      // console.log(content)
-      if (Cesium.defined(content) && Cesium.defined(content._boundingSphere)) {
-        var values = content._boundingSphere.center
-        this.tilesetPoints.push(values)
-      }
-      var children = tile.children
-      if (Cesium.defined(children)) {
-        for (var i = 0; i < children.length; ++i) {
-          this.traverseAndCollectPoints(children[i])
-        }
-      }
-    },
+    // traverseAndCollectPoints(tile) {
+    //   // console.log('+++++++++++++++++++++', tile)
+    //   var content = tile.boundingVolume
+    //   // console.log(content)
+    //   if (Cesium.defined(content) && Cesium.defined(content._boundingSphere)) {
+    //     var values = content._boundingSphere.center
+    //     this.tilesetPoints.push(values)
+    //   }
+    //   var children = tile.children
+    //   if (Cesium.defined(children)) {
+    //     for (var i = 0; i < children.length; ++i) {
+    //       this.traverseAndCollectPoints(children[i])
+    //     }
+    //   }
+    // },
     /**
      * 检查线段与球体的交点
      * lp0, lp1 : 线段两端坐标
@@ -858,6 +768,13 @@ export default {
         z: z
       }
       return wgs84
+    },
+    // 鼠标在电脑屏幕上的点击位置,返回了鼠标点击位置的xy像素点分量 => It {x: 1337, y: 569}
+    getMousePosition(e) {
+      return new Cesium.Cartesian2(
+        e.position.x,
+        e.position.y
+      )
     }
   }
 }

@@ -11,6 +11,11 @@
               </el-input>
             </el-form-item>
             <el-form-item label="贷款期限">
+              <el-input v-model="form.inputQi">
+                <template slot="append">月</template>
+              </el-input>
+            </el-form-item>
+            <!-- <el-form-item label="贷款期限">
               <el-select v-model="form.year" placeholder="请选择活动区域">
                 <el-option
                   v-for="item in yearList"
@@ -19,7 +24,7 @@
                   :value="item.value"
                 />
               </el-select>
-            </el-form-item>
+            </el-form-item> -->
             <el-form-item label="贷款利率">
               <el-input v-model="form.rate">
                 <template slot="append">%</template>
@@ -231,10 +236,11 @@ export default {
   data() {
     return {
       form: {
-        money: 76,
+        money: 49.500598,
         year: 30,
-        rate: '5.88',
-        startDate: '2018-12'
+        rate: '3.95',
+        startDate: '2024-04',
+        inputQi: 161
       },
       formTiqian: {
         money: 20,
@@ -288,7 +294,7 @@ export default {
       return this.form.rate / 100 / 12
     },
     qi() {
-      return 166
+      return 161
     },
     tiqianHuanBen() {
       return this.formTiqian.money * 10000
@@ -480,8 +486,9 @@ export default {
       )
     },
     onSubmit() {
-      this.moon = this.moonPayCompute(this.ben, this.lv, this.qi)
-      this.allRate = this.allRateCompute(this.moon, this.qi, this.ben)
+      console.log('=================', this.form.inputQi)
+      this.moon = this.moonPayCompute(this.ben, this.lv, this.form.inputQi)
+      this.allRate = this.allRateCompute(this.moon, this.form.inputQi, this.ben)
       this.brief = [
         {
           moon: this.moon.toFixed(2),
@@ -495,7 +502,7 @@ export default {
         0,
         0,
         this.lv,
-        this.qi,
+        this.form.inputQi,
         this.moon,
         this.form.startDate
       )
