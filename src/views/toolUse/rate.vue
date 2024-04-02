@@ -88,7 +88,7 @@
           </el-table>
         </el-row> -->
       </div>
-      <div class="single">
+      <!-- <div class="single">
         <el-row>
           <h2>等额本息提前还贷计算</h2>
           <el-form ref="form-tiqian" :model="formTiqian" label-width="120px">
@@ -151,7 +151,7 @@
             <el-table-column prop="new_remaining_principal" label="剩余本金" />
           </el-table>
         </el-row>
-      </div>
+      </div> -->
       <div class="single">
         <el-row>
           <h2>等额本息提前还贷省下利息计算</h2>
