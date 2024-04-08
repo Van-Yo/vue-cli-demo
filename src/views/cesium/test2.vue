@@ -32,6 +32,18 @@
       <label>
         <el-button icon="el-icon-location" type="primary" @click="click3DTile(viewer)">点云选点</el-button>
       </label>
+      <label>
+        <el-upload
+          ref="upload"
+          class="upload-demo"
+          action=""
+          :on-change="handleChange"
+          :file-list="fileList"
+          :auto-upload="false"
+        >
+          <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+        </el-upload>
+      </label>
     </div>
   </div>
 </template>
@@ -41,6 +53,8 @@ export default {
   name: 'HelloWorld',
   data() {
     return {
+      fileList: [],
+      file: null,
       viewer: null,
       droneAnimator: null, // 飞行器
       tileset: null, // 点云
@@ -142,6 +156,18 @@ export default {
     this.gerData()
   },
   methods: {
+    handleChange(file, fileList) {
+      this.file = file.raw
+      console.log(this.file)
+      var kmlData = this.viewer.dataSources.add(Cesium.KmlDataSource.load(
+        this.file,
+        {
+          camera: this.viewer.scene.camera,
+          canvas: this.viewer.scene.canvas
+        })
+      )
+      kmlData.then(this.viewer.zoomTo(kmlData))
+    },
     async gerData() {
       // defaultAccessToken => https://ion.cesium.com/tokens?page=1
       Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJkZWMwZTBiNi05MThiLTQwMjgtYWQ2OS1lOTU2YjVlZWY2NTkiLCJpZCI6MTI4MTM3LCJpYXQiOjE2Nzg0MzczMDF9.YdLkYKoMylbtikMWvjsCy9j11HyBYbVSIQuLXugNgUE'
@@ -201,7 +227,9 @@ export default {
       // 加载3DTileset
       try {
         const tileset = new Cesium.Cesium3DTileset({
-          url: '/cesiumTileset/tileset.json' // 文件的路径
+          // url: '/cesiumTileset/tileset.json' // 文件的路径
+          url: 'http://218.94.141.150:38010/pointCloud/tileset.json' // 点云
+          // url: 'http://openlayers.vip/cesium/3dtile/xianggang_detail/tileset.json' // 倾斜摄影
         })
         // console.log({ tileset })
         var pointCloud = viewer.scene.primitives.add(tileset)
