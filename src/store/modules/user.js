@@ -110,7 +110,8 @@ const user = {
                 children: [
                   { path: 'videoLive', name: 'videoLive', component: 'componentUse/videoLive', meta: { title: '视频组件' }},
                   { path: 'imgViewList', name: 'imgViewList', component: 'componentUse/imgViewList', meta: { title: '图片组件' }},
-                  { path: 'svgIconUse', name: 'svgIconUse', component: 'componentUse/svgIconUse', meta: { title: 'svg组件' }}
+                  { path: 'svgIconUse', name: 'svgIconUse', component: 'componentUse/svgIconUse', meta: { title: 'svg组件' }},
+                  { path: 'jessibuca', name: 'jessibuca', component: 'componentUse/jessibuca', meta: { title: 'jessibuca' }}
                 ]
               },
               {
