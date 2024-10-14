@@ -3,9 +3,9 @@
     <video
       :id="'videoElement'+id"
       autoplay
-      muted
       width="100%"
       height="100%"
+      controls
     />
     <canvas
       v-if="canvasShowFlag"
@@ -135,7 +135,7 @@ export default {
           {
             type: 'flv',
             isLive: true,
-            hasAudio: false,
+            // hasAudio: false,
             cors: true,
             url
           },

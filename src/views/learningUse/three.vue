@@ -58,7 +58,7 @@ export default {
       // 创建几何体
       const geometry = new THREE.BoxGeometry(1, 1, 1)
       // 创建材质
-      const material = new THREE.MeshStandardMaterial({ color: 0x00ff00 })
+      const material = new THREE.MeshNormalMaterial()
       // 根据几何体和材质创建物体
       const cube = new THREE.Mesh(geometry, material)
       // 将物体添加到场景中

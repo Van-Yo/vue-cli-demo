@@ -133,7 +133,7 @@ const user = {
                 meta: { title: '学习笔记演示', icon: 'el-icon-document' },
                 children: [
                   { path: 'echarts', name: 'echarts', component: 'learningUse/echarts', meta: { title: 'echarts' }},
-                  { path: 'three', name: 'three', component: 'learningUse/three', meta: { title: 'three' }},
+                  { path: 'three', name: 'three', component: 'learningUse/threeMoveMeshOnFloor', meta: { title: 'three' }},
                   { path: 'dataHandle', name: 'dataHandle', component: 'learningUse/dataHandle', meta: { title: '数据处理' }},
                   { path: 'cesium', name: 'cesium', component: 'cesium/test2', meta: { title: 'cesium' }},
                   { path: 'offLineMap', name: 'offLineMap', component: 'learningUse/offLineMap', meta: { title: '百度离线地图' }},
