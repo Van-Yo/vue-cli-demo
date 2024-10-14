@@ -236,16 +236,16 @@ export default {
   data() {
     return {
       form: {
-        money: 49.500598,
+        money: 48.085486,
         year: 30,
-        rate: '3.95',
-        startDate: '2024-04',
-        inputQi: 161
+        rate: '3.85',
+        startDate: '2024-10',
+        inputQi: 155
       },
       formTiqian: {
         money: 20,
-        year: 30,
-        rate: '5.88',
+        year: 10,
+        rate: '3.88',
         startDate:
           new Date().getFullYear() +
           '-' +
@@ -255,8 +255,8 @@ export default {
       },
       formTiqianSheng: {
         money: 20,
-        licaiRate: '3',
-        rate: '5.88'
+        licaiRate: '2',
+        rate: '3.85'
       },
       moon: 0, // 每月还款额
       yi_ben: 0, // 以还本金

@@ -110,7 +110,8 @@ const user = {
                 children: [
                   { path: 'videoLive', name: 'videoLive', component: 'componentUse/videoLive', meta: { title: '视频组件' }},
                   { path: 'imgViewList', name: 'imgViewList', component: 'componentUse/imgViewList', meta: { title: '图片组件' }},
-                  { path: 'svgIconUse', name: 'svgIconUse', component: 'componentUse/svgIconUse', meta: { title: 'svg组件' }}
+                  { path: 'svgIconUse', name: 'svgIconUse', component: 'componentUse/svgIconUse', meta: { title: 'svg组件' }},
+                  { path: 'jessibuca', name: 'jessibuca', component: 'componentUse/jessibuca', meta: { title: 'jessibuca' }}
                 ]
               },
               {
@@ -132,7 +133,7 @@ const user = {
                 meta: { title: '学习笔记演示', icon: 'el-icon-document' },
                 children: [
                   { path: 'echarts', name: 'echarts', component: 'learningUse/echarts', meta: { title: 'echarts' }},
-                  { path: 'three', name: 'three', component: 'learningUse/three', meta: { title: 'three' }},
+                  { path: 'three', name: 'three', component: 'learningUse/threeMoveMeshOnFloor', meta: { title: 'three' }},
                   { path: 'dataHandle', name: 'dataHandle', component: 'learningUse/dataHandle', meta: { title: '数据处理' }},
                   { path: 'cesium', name: 'cesium', component: 'cesium/test2', meta: { title: 'cesium' }},
                   { path: 'offLineMap', name: 'offLineMap', component: 'learningUse/offLineMap', meta: { title: '百度离线地图' }},
