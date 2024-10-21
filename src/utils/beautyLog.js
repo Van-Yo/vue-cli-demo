@@ -1,6 +1,7 @@
 // 美化打印实现方法
 const prettyLog = () => {
-  const isProduction = false
+  console.log(process.env.NODE_ENV)
+  const isProduction = process.env.NODE_ENV !== 'development'
 
   const isEmpty = (value) => {
     return value == null || value === undefined || value === ''

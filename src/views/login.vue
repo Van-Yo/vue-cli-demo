@@ -37,7 +37,7 @@ export default {
     }
   },
   created() {
-
+    this.$log('这是登录界面')
   },
   methods: {
     login() {
