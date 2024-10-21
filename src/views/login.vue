@@ -36,7 +36,9 @@ export default {
       }
     }
   },
-  created() {},
+  created() {
+
+  },
   methods: {
     login() {
       this.$refs['form'].validate((valid) => {

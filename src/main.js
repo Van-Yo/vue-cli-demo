@@ -12,8 +12,11 @@ import './plugins/echarts' // echarts
 import './plugins/flv' // flv
 import print from './utils/print.js'
 Vue.use(print)
+import beautyLog from './utils/beautyLog'
+// console.log(beautyLog)
 Vue.config.productionTip = false
 Vue.prototype.$x2js = new x2js()
+Vue.prototype.$log = beautyLog
 
 new Vue({
   router,
