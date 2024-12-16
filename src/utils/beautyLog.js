@@ -1,6 +1,6 @@
 // 美化打印实现方法
 const prettyLog = () => {
-  console.log(process.env.NODE_ENV)
+  // console.log(process.env.NODE_ENV)
   const isProduction = process.env.NODE_ENV !== 'development'
 
   const isEmpty = (value) => {
@@ -96,7 +96,7 @@ const prettyLog = () => {
     (text) => log(text), // 代理调用
     { info, error, warning, success, picture, table } // 保留其他方法
   )
-  console.log(logger)
+  // console.log(logger)
 
   return logger
 }

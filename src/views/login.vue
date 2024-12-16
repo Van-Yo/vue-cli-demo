@@ -38,6 +38,12 @@ export default {
   },
   created() {
     this.$log('这是登录界面')
+    this.$log.info('这是登录界面')
+    this.$log.success('这是登录界面')
+    this.$log.warning('这是登录界面')
+    this.$log.error('这是登录界面')
+    this.$log.picture('/logo.jpeg')
+    this.$log.table()
   },
   methods: {
     login() {
