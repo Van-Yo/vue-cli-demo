@@ -140,7 +140,8 @@ const user = {
                   { path: 'canvas', name: 'canvas', component: 'learningUse/canvas', meta: { title: 'canvas' }},
                   { path: 'editTable', name: 'editTable', component: 'learningUse/editTable', meta: { title: '表格修改' }},
                   { path: 'downloadPDF', name: 'downloadPDF', component: 'learningUse/downloadPDF', meta: { title: '下载pdf' }},
-                  { path: 'print', name: 'print', component: 'learningUse/print', meta: { title: '打印文档' }}
+                  { path: 'print', name: 'print', component: 'learningUse/print', meta: { title: '打印文档' }},
+                  { path: 'colorAdapt', name: 'colorAdapt', component: 'learningUse/colorAdapt', meta: { title: '主题颜色自适应' }}
                 ]
               }
               // { path: '/asyncAwait', name: 'asyncAwait', component: 'asyncAwait', meta: { title: '异步转同步' }},
