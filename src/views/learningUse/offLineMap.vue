@@ -29,7 +29,7 @@ export default {
       this.map.disableDoubleClickZoom()
       // 初始化地图,设置中心点坐标和地图级别
       this.map.centerAndZoom(new BMap.Point(119.28, 26.08), 11)
-
+      this.map.disableDragging() // 禁止拖拽
       this.map.disableInertialDragging() // 禁用惯性拖拽
       this.map.enableContinuousZoom()
 
