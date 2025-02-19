@@ -3,7 +3,8 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import x2js from 'x2js'
-
+import VueClipboard from 'vue-clipboard2'
+Vue.use(VueClipboard)
 // 导入插件
 import './plugins/element.js' // element
 import './assets/styles/index.scss'

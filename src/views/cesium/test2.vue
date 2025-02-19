@@ -30,7 +30,10 @@
         <el-button icon="el-icon-location" type="primary" @click="pointChangeTest(viewer)">拖动测试</el-button>
       </label>
       <label>
-        <el-button icon="el-icon-location" type="primary" @click="click3DTile(viewer)">点云选点</el-button>
+        <el-button icon="el-icon-location" type="primary" @click="click3DTile(viewer)">倾斜射影选点</el-button>
+      </label>
+      <label>
+        <el-button icon="el-icon-location" type="primary" @click="clear3DTilePoint()">清除航线撞倾斜射影</el-button>
       </label>
       <label>
         <el-upload
@@ -149,7 +152,9 @@ export default {
         x: null,
         y: null
       },
-      testDrove: []
+      testDrove: [],
+      testDroveLine: [],
+      testDrovePointList: []
     }
   },
   mounted() {
@@ -228,8 +233,8 @@ export default {
       try {
         const tileset = new Cesium.Cesium3DTileset({
           // url: '/cesiumTileset/tileset.json' // 文件的路径
-          url: 'http://218.94.141.150:38010/pointCloud/tileset.json' // 点云
-          // url: 'http://openlayers.vip/cesium/3dtile/xianggang_detail/tileset.json' // 倾斜摄影
+          // url: 'http://218.94.141.150:38010/pointCloud/tileset.json' // 点云
+          url: 'http://openlayers.vip/cesium/3dtile/xianggang_detail/tileset.json' // 倾斜摄影
         })
         // console.log({ tileset })
         var pointCloud = viewer.scene.primitives.add(tileset)
@@ -241,6 +246,40 @@ export default {
         // })
         await viewer.zoomTo(tileset)
         this.tileset = tileset
+        /**
+         * ==========================================================================倾斜模型数据修改位置-start==================================================================================
+        */
+        // 原始点
+        const boundingSphere = tileset.boundingSphere
+        const cartographic = Cesium.Cartographic.fromCartesian(
+          boundingSphere.center
+        )
+        const longitude = cartographic.longitude
+        const latitude = cartographic.latitude
+        const height = cartographic.height
+        // 世界坐标
+        const origin = Cesium.Cartesian3.fromRadians(
+          cartographic.longitude,
+          cartographic.latitude,
+          cartographic.height
+        )
+        // 偏移后点
+        const offset = Cesium.Cartesian3.fromRadians(
+          longitude + 0.000043,
+          latitude - 0.000027,
+          height
+        )
+        // 计算向量
+        const translate = Cesium.Cartesian3.subtract(
+          offset,
+          origin,
+          new Cesium.Cartesian3()
+        )
+        tileset.modelMatrix = Cesium.Matrix4.fromTranslation(translate)
+
+        /**
+         * =========================================================================倾斜模型数据修改位置-end===================================================================================
+        */
         // 监听模型加载完成事件
         tileset.readyPromise.then((tileset) => {
           // 获取点云所有点的坐标
@@ -260,16 +299,39 @@ export default {
       this.initPlaneViewer(viewer) // 初始化飞机
     },
     showIntersection(result, destPoint, viewPoint) {
+      // console.log(result.position, destPoint, viewPoint)
+      // console.log(destPoint.x - result.position.x, destPoint.y - result.position.y, destPoint.z - result.position.z)
       // 如果是场景模型的交互点，排除交互点是地球表面
-      if (Cesium.defined(result) && Cesium.defined(result.object)) {
-        console.log(result, destPoint, viewPoint)
+      if (Cesium.defined(result) && Cesium.defined(result.object) && Math.abs(destPoint.x - result.position.x) > 1 || Math.abs(destPoint.y - result.position.y) > 1 || Math.abs(destPoint.z - result.position.z) > 1) {
         // // 可视区域
         // this.drawWhiteLine(result.position, viewPoint, 3, Cesium.Color.RED, false)
         // 不可视区域
-        this.drawWhiteLine(viewPoint, destPoint, 3, Cesium.Color.RED, false)
+        const nopLine = this.drawWhiteLine(viewPoint, result.position, 1, Cesium.Color.GREEN, false)
+        const wrongLine = this.drawWhiteLine(result.position, destPoint, 1, Cesium.Color.RED, false)
+        this.testDroveLine = [nopLine, wrongLine]
+        const point = this.viewer.entities.add({
+          position: result.position,
+          point: {
+            color: Cesium.Color.RED,
+            pixelSize: 10
+          }
+        })
+        this.testDrovePointList.push(point)
       } else {
-        this.drawWhiteLine(viewPoint, destPoint, 3, Cesium.Color.GREEN, false)
+        this.testDroveLine = [this.drawWhiteLine(viewPoint, destPoint, 1, Cesium.Color.GREEN, false)]
       }
+    },
+    clear3DTilePoint() {
+      this.testDrovePointList.forEach((point) => {
+        this.viewer.entities.remove(point)
+      })
+      this.testDrovePointList = []
+      this.testDrove = []
+      this.testDroveLine.forEach((line) => {
+        this.viewer.entities.remove(line)
+      })
+      this.testDroveLine = []
+      // this.viewer.entities.remove(point)
     },
     pointChangeTest(viewer) {
       this.$notify.info({
@@ -501,7 +563,7 @@ export default {
         if (Cesium.defined(pickedPosition)) {
           // 在这里你可以处理拾取到的点的位置
           console.log('Picked point:', pickedPosition)
-          viewer.entities.add({
+          const point = viewer.entities.add({
             position: pickedPosition,
             point: {
               color: Cesium.Color.BLUE,
@@ -509,6 +571,7 @@ export default {
             }
           })
           this.testDrove.push(pickedPosition)
+          this.testDrovePointList.push(point)
           if (this.testDrove.length === 2) {
             var direction = Cesium.Cartesian3.normalize(Cesium.Cartesian3.subtract(this.testDrove[1], this.testDrove[0], new Cesium.Cartesian3()), new Cesium.Cartesian3())
             // 建立射线
