@@ -11,6 +11,7 @@ import './assets/styles/index.scss'
 import './assets/icons' // icon
 import './plugins/echarts' // echarts
 import './plugins/flv' // flv
+import 'animate.css'
 import print from './utils/print.js'
 Vue.use(print)
 import beautyLog from './utils/beautyLog'

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@types/three": "^0.142.0",
+    "animate.css": "^4.1.1",
     "axios": "^0.27.2",
     "color": "^4.2.3",
     "core-js": "^3.6.5",
